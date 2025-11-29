@@ -264,6 +264,20 @@ export class App implements OnInit {
     });
   }
 
+  onDeleteFile(file: FileMetadata) {
+    this.fileService.deleteFile(file.id).subscribe({
+      next: () => {
+        console.log('File deleted successfully');
+        this.loadFolder(this.currentFolderId);
+      },
+      error: (err) => {
+        console.error('Delete file error:', err);
+        const errorMsg = err.error?.error || err.message || 'Unknown error';
+        alert('Failed to delete file: ' + errorMsg);
+      }
+    });
+  }
+
   onSearch(event: Event) {
     const input = event.target as HTMLInputElement;
     this.searchQuery = input.value;

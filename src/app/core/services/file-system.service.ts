@@ -48,4 +48,8 @@ export class FileSystemService {
     search(query: string): Observable<any> {
         return this.http.get(`${this.apiUrl}/search?query=${encodeURIComponent(query)}`);
     }
+
+    deleteFile(fileId: number): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/file/${fileId}`);
+    }
 }

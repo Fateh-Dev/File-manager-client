@@ -204,15 +204,38 @@ import { Folder } from '../../core/models/folder.model';
             <span class="text-xs font-medium text-gray-700 truncate w-full text-center group-hover:text-blue-600 transition-colors">{{ file.name }}</span>
             <span class="text-xs text-gray-400 mt-0.5">{{ formatFileSize(file.size) }}</span>
           
-          <!-- Download button on hover -->
-          <button 
-              class="absolute top-1 right-1 p-1 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 hover:bg-gray-50 transition-all duration-200 z-10"
-              (click)="downloadFile.emit(file); $event.stopPropagation()"
-              title="Download file">
-              <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+          <!-- File actions menu button -->
+          <div class="absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button 
+              class="w-6 h-6 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition-all"
+              (click)="onFileMenuClick($event, file)"
+              title="File options">
+              <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
               </svg>
-          </button>
+            </button>
+          </div>
+
+          <!-- File context menu -->
+          <div *ngIf="showMenuForFile?.id === file.id" 
+            class="absolute right-0 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
+            (click)="$event.stopPropagation()"
+            (mousedown)="$event.stopPropagation()">
+            
+            <button 
+              class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+              (click)="downloadFile.emit(file); closeFileMenu()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+              <span>Download</span>
+            </button>
+            <div class="border-t border-gray-200 my-1"></div>
+            <button 
+              class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+              (click)="onDeleteFile(file)">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              <span>Delete</span>
+            </button>
+          </div>
           </div>
         </div>
       </div>
@@ -235,6 +258,7 @@ export class FileGridComponent {
   @Output() deleteFolder = new EventEmitter<Folder>();
   @Output() moveFolder = new EventEmitter<{ folder: Folder, targetFolderId: number | null }>();
   @Output() moveFile = new EventEmitter<{ file: FileMetadata, targetFolderId: number | null }>();
+  @Output() deleteFile = new EventEmitter<FileMetadata>();
 
   isDragging = false;
   draggingFolder: Folder | null = null;
@@ -242,6 +266,7 @@ export class FileGridComponent {
   dragOverFolder: Folder | null = null;
   dragOverBreadcrumbId: number | null = null;
   showMenuFor: Folder | null = null;
+  showMenuForFile: FileMetadata | null = null;
 
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
@@ -310,6 +335,22 @@ export class FileGridComponent {
     this.showMenuFor = null;
     if (confirm(`Are you sure you want to delete "${folder.name}" and all its contents? They will be moved to the Recycle Bin.`)) {
       this.deleteFolder.emit(folder);
+    }
+  }
+
+  closeFileMenu() {
+    this.showMenuForFile = null;
+  }
+
+  onFileMenuClick(event: Event, file: FileMetadata) {
+    event.stopPropagation();
+    this.showMenuForFile = this.showMenuForFile?.id === file.id ? null : file;
+  }
+
+  onDeleteFile(file: FileMetadata) {
+    this.showMenuForFile = null;
+    if (confirm(`Are you sure you want to delete "${file.name}"? It will be moved to the Recycle Bin.`)) {
+      this.deleteFile.emit(file);
     }
   }
 
