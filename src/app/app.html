@@ -54,26 +54,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
           </svg>
-          <span>Logout</span>
-        </button>
+          <app-input-modal [isOpen]="showFolderModal" title="Create New Folder" placeholder="Enter folder name"
+            submitText="Create" (submit)="onFolderNameSubmit($event)" (cancel)="onFolderModalCancel()">
+          </app-input-modal>
       </div>
-    </header>
-
-    <main class="flex-1 overflow-hidden">
-      <app-file-grid [folders]="folders" [files]="files" [currentFolder]="currentFolder"
-        [breadcrumbTrail]="breadcrumbTrail" [isLoading]="isLoading" (openFolder)="onOpenFolder($event)"
-        (previewFile)="previewFile($event)" (downloadFile)="downloadFile($event)" (uploadFiles)="uploadFiles($event)"
-        (navigateUp)="navigateUp()" (navigateToBreadcrumb)="navigateToBreadcrumb($event)"
-        (renameFolder)="onRenameFolder($event)" (deleteFolder)="onDeleteFolder($event)"
-        (moveFolder)="onMoveFolder($event)">
-      </app-file-grid>
-    </main>
-  </div>
-
-  <app-preview-modal [file]="previewingFile" (close)="previewingFile = null" (download)="downloadFile($event)">
-  </app-preview-modal>
-
-  <app-input-modal [isOpen]="showFolderModal" title="Create New Folder" placeholder="Enter folder name"
-    submitText="Create" (submit)="onFolderNameSubmit($event)" (cancel)="onFolderModalCancel()">
-  </app-input-modal>
-</div>

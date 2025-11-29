@@ -247,29 +247,48 @@ export class App implements OnInit {
     });
   }
 
+  onMoveFile(event: { file: FileMetadata, targetFolderId: number | null }) {
+    if (!event.targetFolderId) return;
+
+    this.isLoading = true;
+    this.fileService.moveFile(event.file.id, event.targetFolderId).subscribe({
+      next: () => {
+        this.loadFolder(this.currentFolderId);
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error moving file:', error);
+        this.isLoading = false;
+        alert('Failed to move file');
+      }
+    });
+  }
+
   onSearch(event: Event) {
     const input = event.target as HTMLInputElement;
-    const query = input.value;
-    this.searchQuery = query;
+    this.searchQuery = input.value;
 
-    if (!query || query.trim() === '') {
-      this.loadFolder(this.currentFolderId);
+    if (!this.searchQuery.trim()) {
+      if (this.currentFolderId !== -1) {
+        this.loadFolder(this.currentFolderId);
+      } else {
+        this.currentFolderId = 1;
+        this.loadFolder(1);
+      }
       return;
     }
 
     this.isLoading = true;
-    this.fileService.search(query).subscribe({
-      next: (res) => {
-        console.log('Search results:', res);
-        this.folders = res.folders || [];
-        this.files = res.files || [];
-        this.currentFolder = { id: -1, name: `Search results for "${query}"` };
+    this.fileService.search(this.searchQuery).subscribe({
+      next: (results) => {
+        this.folders = results.folders;
+        this.files = results.files;
+        this.currentFolder = { id: -1, name: 'Search Results', parentFolderId: null, ownerId: 0, subFolders: [], files: [] };
         this.breadcrumbTrail = [{ id: 1, name: 'Root' }, { id: -1, name: 'Search Results' }];
         this.isLoading = false;
-        this.cdr.detectChanges();
       },
-      error: (err) => {
-        console.error('Search error:', err);
+      error: (error) => {
+        console.error('Error searching:', error);
         this.isLoading = false;
       }
     });
@@ -277,6 +296,7 @@ export class App implements OnInit {
 
   clearSearch() {
     this.searchQuery = '';
-    this.loadFolder(this.currentFolderId);
+    this.currentFolderId = 1;
+    this.loadFolder(1);
   }
 }

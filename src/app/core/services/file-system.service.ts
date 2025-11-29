@@ -41,6 +41,10 @@ export class FileSystemService {
         return this.http.put(`${this.apiUrl}/folder/${folderId}/move`, { targetFolderId });
     }
 
+    moveFile(fileId: number, targetFolderId: number | null): Observable<any> {
+        return this.http.put(`${this.apiUrl}/file/${fileId}/move`, { targetFolderId });
+    }
+
     search(query: string): Observable<any> {
         return this.http.get(`${this.apiUrl}/search?query=${encodeURIComponent(query)}`);
     }

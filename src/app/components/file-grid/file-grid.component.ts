@@ -33,7 +33,11 @@ import { Folder } from '../../core/models/folder.model';
         <div class="flex items-center space-x-2">
           <button 
             class="flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-blue-600 text-sm font-medium"
-            (click)="navigateUp.emit()">
+            (click)="navigateUp.emit()"
+            (dragover)="breadcrumbTrail.length > 1 ? onBreadcrumbDragOver($event, breadcrumbTrail[breadcrumbTrail.length - 2].id) : null"
+            (dragleave)="breadcrumbTrail.length > 1 ? onBreadcrumbDragLeave($event, breadcrumbTrail[breadcrumbTrail.length - 2].id) : null"
+            (drop)="breadcrumbTrail.length > 1 ? onBreadcrumbDrop($event, breadcrumbTrail[breadcrumbTrail.length - 2].id) : null"
+            [class.bg-blue-100]="breadcrumbTrail.length > 1 && dragOverBreadcrumbId === breadcrumbTrail[breadcrumbTrail.length - 2].id">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
             </svg>
@@ -45,7 +49,11 @@ import { Folder } from '../../core/models/folder.model';
               <button 
                 *ngIf="!last"
                 class="px-2 py-1 rounded-md text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-blue-600 transition-colors"
-                (click)="navigateToBreadcrumb.emit(i)">
+                [class.bg-blue-100]="dragOverBreadcrumbId === crumb.id"
+                (click)="navigateToBreadcrumb.emit(i)"
+                (dragover)="onBreadcrumbDragOver($event, crumb.id)"
+                (dragleave)="onBreadcrumbDragLeave($event, crumb.id)"
+                (drop)="onBreadcrumbDrop($event, crumb.id)">
                 {{ crumb.name }}
               </button>
               <span 
@@ -182,6 +190,10 @@ import { Folder } from '../../core/models/folder.model';
           <div *ngFor="let file of files; let i = index" 
                class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md cursor-pointer border border-gray-200 flex flex-col items-center justify-center transition-all duration-200 group relative animate-fade-in"
                [style.animation-delay]="(i * 0.05) + 's'"
+               [class.opacity-50]="draggingFile?.id === file.id"
+               [draggable]="true"
+               (dragstart)="onFileDragStart($event, file)"
+               (dragend)="onFileDragEnd($event)"
              (click)="previewFile.emit(file)">
           
             <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mb-2 group-hover:bg-blue-600 transition-colors">
@@ -222,10 +234,13 @@ export class FileGridComponent {
   @Output() renameFolder = new EventEmitter<{ folder: Folder, newName: string }>();
   @Output() deleteFolder = new EventEmitter<Folder>();
   @Output() moveFolder = new EventEmitter<{ folder: Folder, targetFolderId: number | null }>();
+  @Output() moveFile = new EventEmitter<{ file: FileMetadata, targetFolderId: number | null }>();
 
   isDragging = false;
   draggingFolder: Folder | null = null;
+  draggingFile: FileMetadata | null = null;
   dragOverFolder: Folder | null = null;
+  dragOverBreadcrumbId: number | null = null;
   showMenuFor: Folder | null = null;
 
   formatFileSize(bytes: number): string {
@@ -310,6 +325,16 @@ export class FileGridComponent {
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
       event.dataTransfer.setData('text/plain', folder.id.toString());
+      event.dataTransfer.setData('application/json', JSON.stringify({ type: 'folder', id: folder.id }));
+    }
+  }
+
+  onFileDragStart(event: DragEvent, file: FileMetadata) {
+    this.draggingFile = file;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', file.id.toString());
+      event.dataTransfer.setData('application/json', JSON.stringify({ type: 'file', id: file.id }));
     }
   }
 
@@ -318,9 +343,23 @@ export class FileGridComponent {
     this.dragOverFolder = null;
   }
 
+  onFileDragEnd(event: DragEvent) {
+    this.draggingFile = null;
+  }
+
   onFolderDragOver(event: DragEvent, folder: Folder) {
     event.preventDefault();
     event.stopPropagation();
+
+    // Allow dropping files on folders
+    if (this.draggingFile) {
+      this.dragOverFolder = folder;
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
+      return;
+    }
+
     if (this.draggingFolder && this.draggingFolder.id !== folder.id) {
       this.dragOverFolder = folder;
       if (event.dataTransfer) {
@@ -341,6 +380,13 @@ export class FileGridComponent {
     event.preventDefault();
     event.stopPropagation();
 
+    if (this.draggingFile) {
+      this.moveFile.emit({ file: this.draggingFile, targetFolderId: targetFolder.id });
+      this.draggingFile = null;
+      this.dragOverFolder = null;
+      return;
+    }
+
     if (this.draggingFolder && this.draggingFolder.id !== targetFolder.id) {
       this.moveFolder.emit({ folder: this.draggingFolder, targetFolderId: targetFolder.id });
     }
@@ -349,11 +395,53 @@ export class FileGridComponent {
     this.dragOverFolder = null;
   }
 
+  onBreadcrumbDragOver(event: DragEvent, crumbId: number) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    // Don't allow dropping on current folder (last breadcrumb) if it's the same as source parent
+    // But simplified: allow drop, backend/logic will handle "no-op" or "invalid move"
+
+    if (this.draggingFolder || this.draggingFile) {
+      this.dragOverBreadcrumbId = crumbId;
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = 'move';
+      }
+    }
+  }
+
+  onBreadcrumbDragLeave(event: DragEvent, crumbId: number) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.dragOverBreadcrumbId === crumbId) {
+      this.dragOverBreadcrumbId = null;
+    }
+  }
+
+  onBreadcrumbDrop(event: DragEvent, targetFolderId: number) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dragOverBreadcrumbId = null;
+
+    if (this.draggingFile) {
+      this.moveFile.emit({ file: this.draggingFile, targetFolderId: targetFolderId });
+      this.draggingFile = null;
+    } else if (this.draggingFolder) {
+      // Prevent moving folder into itself (though UI shouldn't allow dragging parent into child in breadcrumb list usually, 
+      // but breadcrumbs show parents. Moving a folder to its parent is a no-op or move up.
+      // Moving a folder to a grandparent is valid.
+      if (this.draggingFolder.id !== targetFolderId) {
+        this.moveFolder.emit({ folder: this.draggingFolder, targetFolderId: targetFolderId });
+      }
+      this.draggingFolder = null;
+    }
+  }
+
   onDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    // Only show file upload overlay if dragging files, not folders
-    if (event.dataTransfer?.types.includes('Files')) {
+    // Only show file upload overlay if dragging files from OS, not internal drag
+    if (event.dataTransfer?.types.includes('Files') && !this.draggingFolder && !this.draggingFile) {
       this.isDragging = true;
     }
   }
@@ -370,12 +458,15 @@ export class FileGridComponent {
     this.isDragging = false;
 
     // Check if dropping files or folder
-    if (event.dataTransfer?.files.length) {
+    if (event.dataTransfer?.files.length && !this.draggingFolder && !this.draggingFile) {
       this.uploadFiles.emit(event.dataTransfer.files);
     } else if (this.draggingFolder) {
-      // Drop folder on empty area = move to current folder (root)
-      this.moveFolder.emit({ folder: this.draggingFolder, targetFolderId: this.currentFolder?.id || null });
+      // Drop folder on empty area = move to current folder (root) - wait, this is current folder view.
+      // If dragging a folder from somewhere else into current view? 
+      // Currently we only drag from current view. So dropping on empty area in same view does nothing.
       this.draggingFolder = null;
+    } else if (this.draggingFile) {
+      this.draggingFile = null;
     }
   }
 
