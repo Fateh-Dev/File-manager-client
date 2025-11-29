@@ -5,10 +5,10 @@ import { FileMetadata } from '../../core/models/file.model';
 import { FileSystemService } from '../../core/services/file-system.service';
 
 @Component({
-    selector: 'app-preview-modal',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-preview-modal',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div *ngIf="file" 
          class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in" 
          (click)="close.emit()">
@@ -37,7 +37,7 @@ import { FileSystemService } from '../../core/services/file-system.service';
             <button 
               class="p-1.5 hover:bg-gray-200 rounded-md transition-colors text-gray-600 hover:text-blue-600"
               (click)="download.emit(file)"
-              title="Download">
+              title="Télécharger">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
               </svg>
@@ -45,7 +45,7 @@ import { FileSystemService } from '../../core/services/file-system.service';
             <button 
               class="p-1.5 hover:bg-gray-200 rounded-md transition-colors text-gray-600 hover:text-red-600"
               (click)="close.emit()"
-              title="Close">
+              title="Fermer">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
@@ -57,7 +57,7 @@ import { FileSystemService } from '../../core/services/file-system.service';
         <div class="flex-1 overflow-auto bg-gray-50 flex items-center justify-center p-4">
           <div *ngIf="loading" class="text-center">
             <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mb-3"></div>
-            <p class="text-gray-600 text-sm font-medium">Loading preview...</p>
+            <p class="text-gray-600 text-sm font-medium">Chargement de l'aperçu...</p>
           </div>
           
           <img *ngIf="!loading && isImage && previewUrl" 
@@ -75,15 +75,15 @@ import { FileSystemService } from '../../core/services/file-system.service';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
               </svg>
             </div>
-            <h4 class="text-base font-semibold text-gray-800 mb-1.5">Preview Not Available</h4>
-            <p class="text-gray-600 text-sm mb-4">This file type cannot be previewed in the browser.</p>
+            <h4 class="text-base font-semibold text-gray-800 mb-1.5">Aperçu Non Disponible</h4>
+            <p class="text-gray-600 text-sm mb-4">Ce type de fichier ne peut pas être prévisualisé dans le navigateur.</p>
             <button 
               class="inline-flex items-center space-x-1.5 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors text-sm font-semibold"
               (click)="download.emit(file)">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
               </svg>
-              <span>Download File</span>
+              <span>Télécharger le Fichier</span>
             </button>
           </div>
         </div>
@@ -92,57 +92,57 @@ import { FileSystemService } from '../../core/services/file-system.service';
   `
 })
 export class PreviewModalComponent implements OnChanges {
-    @Input() file: FileMetadata | null = null;
-    @Output() close = new EventEmitter<void>();
-    @Output() download = new EventEmitter<FileMetadata>();
+  @Input() file: FileMetadata | null = null;
+  @Output() close = new EventEmitter<void>();
+  @Output() download = new EventEmitter<FileMetadata>();
 
-    previewUrl: SafeResourceUrl | null = null;
-    loading = false;
+  previewUrl: SafeResourceUrl | null = null;
+  loading = false;
 
-    constructor(private fileService: FileSystemService, private sanitizer: DomSanitizer) { }
+  constructor(private fileService: FileSystemService, private sanitizer: DomSanitizer) { }
 
-    ngOnChanges() {
-        if (this.file) {
-            this.loadPreview();
-        } else {
-            this.previewUrl = null;
-            this.loading = false;
-        }
+  ngOnChanges() {
+    if (this.file) {
+      this.loadPreview();
+    } else {
+      this.previewUrl = null;
+      this.loading = false;
+    }
+  }
+
+  get isImage() {
+    return this.file && ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(this.file.extension.toLowerCase());
+  }
+
+  get isPdf() {
+    return this.file && this.file.extension.toLowerCase() === '.pdf';
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Octets';
+    const k = 1024;
+    const sizes = ['Octets', 'Ko', 'Mo', 'Go'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  loadPreview() {
+    if (!this.file) return;
+    if (!this.isImage && !this.isPdf) {
+      this.loading = false;
+      return;
     }
 
-    get isImage() {
-        return this.file && ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'].includes(this.file.extension.toLowerCase());
-    }
-
-    get isPdf() {
-        return this.file && this.file.extension.toLowerCase() === '.pdf';
-    }
-
-    formatFileSize(bytes: number): string {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-    }
-
-    loadPreview() {
-        if (!this.file) return;
-        if (!this.isImage && !this.isPdf) {
-            this.loading = false;
-            return;
-        }
-
-        this.loading = true;
-        this.fileService.downloadFile(this.file.id).subscribe({
-            next: (blob) => {
-                const url = URL.createObjectURL(blob);
-                this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-                this.loading = false;
-            },
-            error: () => {
-                this.loading = false;
-            }
-        });
-    }
+    this.loading = true;
+    this.fileService.downloadFile(this.file.id).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        this.previewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+        this.loading = false;
+      },
+      error: () => {
+        this.loading = false;
+      }
+    });
+  }
 }

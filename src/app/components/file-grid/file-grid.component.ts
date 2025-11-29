@@ -24,8 +24,8 @@ import { Folder } from '../../core/models/folder.model';
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
             </svg>
           </div>
-          <p class="text-blue-600 text-lg font-bold">Drop files here to upload</p>
-          <p class="text-gray-500 text-xs mt-1">Release to upload your files</p>
+          <p class="text-blue-600 text-lg font-bold">Déposez les fichiers ici pour les importer</p>
+          <p class="text-gray-500 text-xs mt-1">Relâchez pour importer vos fichiers</p>
         </div>
       </div>
 
@@ -42,7 +42,7 @@ import { Folder } from '../../core/models/folder.model';
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
             </svg>
-            <span>Back</span>
+            <span>Retour</span>
           </button>
           <span class="text-gray-400">/</span>
           <div class="flex items-center space-x-1">
@@ -70,7 +70,7 @@ import { Folder } from '../../core/models/folder.model';
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
           </svg>
-          <span>Upload</span>
+          <span>Importer</span>
           <input 
             type="file" 
             multiple 
@@ -84,7 +84,7 @@ import { Folder } from '../../core/models/folder.model';
       <div *ngIf="isLoading" class="flex items-center justify-center py-16">
         <div class="text-center">
           <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-500 border-t-transparent mb-3"></div>
-          <p class="text-gray-600 text-sm font-medium">Loading...</p>
+          <p class="text-gray-600 text-sm font-medium">Chargement...</p>
         </div>
       </div>
 
@@ -95,13 +95,13 @@ import { Folder } from '../../core/models/folder.model';
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
           </svg>
         </div>
-        <p class="text-gray-600 text-sm font-medium mb-1">This folder is empty</p>
-        <p class="text-gray-400 text-xs">Drag and drop files here or create a new folder</p>
+        <p class="text-gray-600 text-sm font-medium mb-1">Ce dossier est vide</p>
+        <p class="text-gray-400 text-xs">Glissez-déposez des fichiers ici ou créez un nouveau dossier</p>
       </div>
 
       <!-- Folders -->
       <div *ngIf="!isLoading && folders.length > 0" class="mb-6">
-  <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4 px-2">Folders</h3>
+  <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4 px-2">Dossiers</h3>
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-x-4 gap-y-6">
     
     <div *ngFor="let folder of folders; let i = index" 
@@ -164,20 +164,20 @@ import { Folder } from '../../core/models/folder.model';
             class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
             (click)="onRenameFolder(folder)">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-            <span>Rename</span>
+            <span>Renommer</span>
           </button>
           <button 
             class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
             (click)="onMoveFolder(folder)">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-            <span>Move</span>
+            <span>Déplacer</span>
           </button>
           <div class="border-t border-gray-200 my-1"></div>
           <button 
             class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
             (click)="onDeleteFolder(folder)">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            <span>Delete</span>
+            <span>Supprimer</span>
           </button>
         </ng-container>
 
@@ -186,20 +186,19 @@ import { Folder } from '../../core/models/folder.model';
             class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
             (click)="restoreFolder.emit(folder); closeMenu()">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            <span>Restore</span>
+            <span>Restaurer</span>
           </button>
           <div class="border-t border-gray-200 my-1"></div>
           <button 
             class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
             (click)="onPurgeFolder(folder)">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            <span>Delete Permanently</span>
+            <span>Supprimer Définitivement</span>
           </button>
         </ng-container>
       </div>
       
-    </div>
-  </div>
+    </div>  </div>
 </div>
 
       <!-- Files -->
@@ -210,6 +209,7 @@ import { Folder } from '../../core/models/folder.model';
                class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md cursor-pointer border border-gray-200 flex flex-col items-center justify-center transition-all duration-200 group relative animate-fade-in"
                [style.animation-delay]="(i * 0.05) + 's'"
                [class.opacity-50]="draggingFile?.id === file.id"
+               
                [draggable]="true"
                (dragstart)="onFileDragStart($event, file)"
                (dragend)="onFileDragEnd($event)"
@@ -246,14 +246,14 @@ import { Folder } from '../../core/models/folder.model';
                 class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                 (click)="downloadFile.emit(file); closeFileMenu()">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                <span>Download</span>
+                <span>Télécharger</span>
               </button>
               <div class="border-t border-gray-200 my-1"></div>
               <button 
                 class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
                 (click)="onDeleteFile(file)">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                <span>Delete</span>
+                <span>Supprimer</span>
               </button>
             </ng-container>
 
@@ -262,14 +262,14 @@ import { Folder } from '../../core/models/folder.model';
                 class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                 (click)="restoreFile.emit(file); closeFileMenu()">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                <span>Restore</span>
+                <span>Restaurer</span>
               </button>
               <div class="border-t border-gray-200 my-1"></div>
               <button 
                 class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
                 (click)="onPurgeFile(file)">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                <span>Delete Permanently</span>
+                <span>Supprimer Définitivement</span>
               </button>
             </ng-container>
           </div>
@@ -311,9 +311,9 @@ export class FileGridComponent {
   showMenuForFile: FileMetadata | null = null;
 
   formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return '0 Octets';
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ['Octets', 'Ko', 'Mo', 'Go'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   }
@@ -378,7 +378,7 @@ export class FileGridComponent {
 
   onRenameFolder(folder: Folder) {
     this.showMenuFor = null;
-    const newName = prompt('Enter new folder name:', folder.name);
+    const newName = prompt('Entrez le nouveau nom du dossier :', folder.name);
     if (newName && newName.trim() && newName !== folder.name) {
       this.renameFolder.emit({ folder, newName: newName.trim() });
     }
@@ -386,7 +386,7 @@ export class FileGridComponent {
 
   onDeleteFolder(folder: Folder) {
     this.showMenuFor = null;
-    if (confirm(`Are you sure you want to delete "${folder.name}" and all its contents? They will be moved to the Recycle Bin.`)) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer "${folder.name}" et tout son contenu ? Ils seront déplacés vers la Corbeille.`)) {
       this.deleteFolder.emit(folder);
     }
   }
@@ -402,7 +402,7 @@ export class FileGridComponent {
 
   onDeleteFile(file: FileMetadata) {
     this.showMenuForFile = null;
-    if (confirm(`Are you sure you want to delete "${file.name}"? It will be moved to the Recycle Bin.`)) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer "${file.name}" ? Il sera déplacé vers la Corbeille.`)) {
       this.deleteFile.emit(file);
     }
   }
@@ -421,7 +421,7 @@ export class FileGridComponent {
     this.showMenuFor = null;
     // Emit event to show folder picker or use drag and drop
     // For now, show instruction
-    alert('To move this folder, drag and drop it onto another folder. Or use drag and drop to move it to the current folder.');
+    alert('Pour déplacer ce dossier, glissez-le et déposez-le sur un autre dossier. Ou utilisez le glisser-déposer pour le déplacer vers le dossier actuel.');
   }
 
   onFolderDragStart(event: DragEvent, folder: Folder) {

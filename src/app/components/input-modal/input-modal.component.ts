@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 @Component({
-    selector: 'app-input-modal',
-    standalone: true,
-    imports: [CommonModule, FormsModule],
-    template: `
+  selector: 'app-input-modal',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
     <div *ngIf="isOpen" 
          class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4 animate-fade-in"
          (click)="onCancel()">
@@ -28,7 +28,7 @@ import { FormsModule } from '@angular/forms';
         <div class="p-4">
           <div class="mb-3">
             <label class="block text-xs font-semibold text-gray-700 mb-1.5">
-              {{ placeholder || 'Enter value' }}
+              {{ placeholder || 'Entrez une valeur' }}
             </label>
             <input 
               #inputRef
@@ -58,7 +58,7 @@ import { FormsModule } from '@angular/forms';
             (click)="onCancel()"
             class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium rounded-md hover:bg-gray-200 transition-colors text-sm"
           >
-            Cancel
+            Annuler
           </button>
           <button 
             (click)="onSubmit()"
@@ -73,51 +73,51 @@ import { FormsModule } from '@angular/forms';
   `
 })
 export class InputModalComponent implements OnChanges, AfterViewInit {
-    @Input() isOpen = false;
-    @Input() title = 'Input';
-    @Input() placeholder = '';
-    @Input() submitText = 'OK';
-    @Output() submit = new EventEmitter<string>();
-    @Output() cancel = new EventEmitter<void>();
-    @ViewChild('inputRef') inputRef?: ElementRef<HTMLInputElement>;
+  @Input() isOpen = false;
+  @Input() title = 'Input';
+  @Input() placeholder = '';
+  @Input() submitText = 'OK';
+  @Output() submit = new EventEmitter<string>();
+  @Output() cancel = new EventEmitter<void>();
+  @ViewChild('inputRef') inputRef?: ElementRef<HTMLInputElement>;
 
-    inputValue = '';
-    errorMessage = '';
+  inputValue = '';
+  errorMessage = '';
 
-    ngOnChanges(changes: SimpleChanges) {
-        if (changes['isOpen'] && changes['isOpen'].currentValue) {
-            this.inputValue = '';
-            this.errorMessage = '';
-            // Focus input when modal opens
-            setTimeout(() => {
-                if (this.inputRef) {
-                    this.inputRef.nativeElement.focus();
-                }
-            }, 100);
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['isOpen'] && changes['isOpen'].currentValue) {
+      this.inputValue = '';
+      this.errorMessage = '';
+      // Focus input when modal opens
+      setTimeout(() => {
+        if (this.inputRef) {
+          this.inputRef.nativeElement.focus();
         }
+      }, 100);
     }
+  }
 
-    ngAfterViewInit() {
-        if (this.isOpen && this.inputRef) {
-            setTimeout(() => {
-                this.inputRef?.nativeElement.focus();
-            }, 100);
-        }
+  ngAfterViewInit() {
+    if (this.isOpen && this.inputRef) {
+      setTimeout(() => {
+        this.inputRef?.nativeElement.focus();
+      }, 100);
     }
+  }
 
-    onSubmit() {
-        if (this.inputValue.trim()) {
-            this.submit.emit(this.inputValue);
-            this.inputValue = '';
-            this.errorMessage = '';
-        } else {
-            this.errorMessage = 'Please enter a valid name';
-        }
+  onSubmit() {
+    if (this.inputValue.trim()) {
+      this.submit.emit(this.inputValue);
+      this.inputValue = '';
+      this.errorMessage = '';
+    } else {
+      this.errorMessage = 'Veuillez entrer un nom valide';
     }
+  }
 
-    onCancel() {
-        this.cancel.emit();
-        this.inputValue = '';
-        this.errorMessage = '';
-    }
+  onCancel() {
+    this.cancel.emit();
+    this.inputValue = '';
+    this.errorMessage = '';
+  }
 }

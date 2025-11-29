@@ -4,10 +4,10 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
-    selector: 'app-login',
-    standalone: true,
-    imports: [CommonModule, FormsModule],
-    template: `
+  selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
     <div class="min-h-screen flex items-center justify-center p-4">
       <div class="w-full max-w-md">
         <!-- Logo and Title -->
@@ -18,21 +18,21 @@ import { AuthService } from '../../core/services/auth.service';
             </svg>
           </div>
           <h1 class="text-xl font-bold text-gray-800 mb-1">
-            File Manager
+            Gestionnaire de Fichiers
           </h1>
-          <p class="text-gray-500 text-sm">Sign in to access your files</p>
+          <p class="text-gray-500 text-sm">Connectez-vous pour accéder à vos fichiers</p>
         </div>
 
         <!-- Login Card -->
         <div class="bg-white rounded-lg shadow-md p-6 animate-fade-in">
           <h2 class="text-lg font-bold text-gray-800 mb-4 text-center">
-            {{ isRegister ? 'Create Account' : 'Welcome Back' }}
+            {{ isRegister ? 'Créer un Compte' : 'Bienvenue' }}
           </h2>
           
           <form (ngSubmit)="isRegister ? register() : login()" class="space-y-4">
             <div>
               <label class="block text-gray-700 text-xs font-semibold mb-1.5">
-                Username
+                Nom d'utilisateur
               </label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
@@ -45,14 +45,14 @@ import { AuthService } from '../../core/services/auth.service';
                   [(ngModel)]="username" 
                   name="username"
                   class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
-                  placeholder="Enter your username"
+                  placeholder="Entrez votre nom d'utilisateur"
                   required>
               </div>
             </div>
             
             <div>
               <label class="block text-gray-700 text-xs font-semibold mb-1.5">
-                Password
+                Mot de passe
               </label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
@@ -65,7 +65,7 @@ import { AuthService } from '../../core/services/auth.service';
                   [(ngModel)]="password" 
                   name="password"
                   class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
-                  placeholder="Enter your password"
+                  placeholder="Entrez votre mot de passe"
                   required>
               </div>
             </div>
@@ -83,13 +83,13 @@ import { AuthService } from '../../core/services/auth.service';
               type="submit"
               [disabled]="isLoading"
               class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-              <span *ngIf="!isLoading">{{ isRegister ? 'Create Account' : 'Sign In' }}</span>
+              <span *ngIf="!isLoading">{{ isRegister ? 'Créer un Compte' : 'Se Connecter' }}</span>
               <span *ngIf="isLoading" class="flex items-center justify-center">
                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Processing...
+                Traitement...
               </span>
             </button>
           </form>
@@ -98,62 +98,62 @@ import { AuthService } from '../../core/services/auth.service';
             <button 
               (click)="toggleMode()"
               class="text-blue-600 hover:text-blue-700 text-xs font-medium transition-colors">
-              {{ isRegister ? 'Already have an account? Sign in' : "Don't have an account? Sign up" }}
+              {{ isRegister ? 'Vous avez déjà un compte ? Connectez-vous' : "Vous n'avez pas de compte ? Inscrivez-vous" }}
             </button>
           </div>
         </div>
 
         <!-- Footer -->
         <p class="text-center text-gray-400 text-sm mt-6">
-          Secure file management system
+          Système de gestion de fichiers sécurisé
         </p>
       </div>
     </div>
   `
 })
 export class LoginComponent {
-    username = '';
-    password = '';
-    isRegister = false;
-    errorMessage = '';
-    isLoading = false;
+  username = '';
+  password = '';
+  isRegister = false;
+  errorMessage = '';
+  isLoading = false;
 
-    constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) { }
 
-    login() {
+  login() {
+    this.errorMessage = '';
+    this.isLoading = true;
+    this.authService.login({ username: this.username, password: this.password }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        window.location.reload();
+      },
+      error: (err) => {
+        this.errorMessage = 'Échec de la connexion. Veuillez vérifier vos identifiants.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  register() {
+    this.errorMessage = '';
+    this.isLoading = true;
+    this.authService.register({ username: this.username, password: this.password }).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.isRegister = false;
         this.errorMessage = '';
-        this.isLoading = true;
-        this.authService.login({ username: this.username, password: this.password }).subscribe({
-            next: () => {
-                this.isLoading = false;
-                window.location.reload();
-            },
-            error: (err) => {
-                this.errorMessage = 'Login failed. Please check your credentials.';
-                this.isLoading = false;
-            }
-        });
-    }
+        alert('Inscription réussie ! Veuillez vous connecter.');
+      },
+      error: (err) => {
+        this.errorMessage = 'Échec de l\'inscription. Le nom d\'utilisateur existe peut-être déjà.';
+        this.isLoading = false;
+      }
+    });
+  }
 
-    register() {
-        this.errorMessage = '';
-        this.isLoading = true;
-        this.authService.register({ username: this.username, password: this.password }).subscribe({
-            next: () => {
-                this.isLoading = false;
-                this.isRegister = false;
-                this.errorMessage = '';
-                alert('Registration successful! Please login.');
-            },
-            error: (err) => {
-                this.errorMessage = 'Registration failed. Username may already exist.';
-                this.isLoading = false;
-            }
-        });
-    }
-
-    toggleMode() {
-        this.isRegister = !this.isRegister;
-        this.errorMessage = '';
-    }
+  toggleMode() {
+    this.isRegister = !this.isRegister;
+    this.errorMessage = '';
+  }
 }

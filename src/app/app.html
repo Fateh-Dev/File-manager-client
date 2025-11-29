@@ -15,7 +15,7 @@
             </svg>
           </div>
           <h1 class="text-lg font-bold text-gray-800">
-            File Manager
+            Gestionnaire de Fichiers
           </h1>
         </div>
 
@@ -29,7 +29,7 @@
           </div>
           <input type="text"
             class="block w-64 pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
-            placeholder="Search files and folders..." [value]="searchQuery" (input)="onSearch($event)"
+            placeholder="Rechercher des fichiers et dossiers..." [value]="searchQuery" (input)="onSearch($event)"
             (keydown.enter)="onSearchEnter()">
           <div *ngIf="searchQuery" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
             (click)="clearSearch()">
@@ -47,7 +47,7 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
           </svg>
-          <span>New Folder</span>
+          <span>Nouveau Dossier</span>
         </button>
         <button
           class="flex items-center space-x-1.5 text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors text-sm font-medium"
@@ -56,7 +56,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
           </svg>
-          <span>Logout</span>
+          <span>Déconnexion</span>
         </button>
       </div>
     </header>
@@ -76,8 +76,8 @@
   </div>
 
   <!-- Modals -->
-  <app-input-modal [isOpen]="showFolderModal" title="Create New Folder" placeholder="Enter folder name"
-    submitText="Create" (submit)="onFolderNameSubmit($event)" (cancel)="onFolderModalCancel()">
+  <app-input-modal [isOpen]="showFolderModal" title="Créer un Nouveau Dossier" placeholder="Entrez le nom du dossier"
+    submitText="Créer" (submit)="onFolderNameSubmit($event)" (cancel)="onFolderModalCancel()">
   </app-input-modal>
 
   <app-preview-modal *ngIf="previewingFile" [file]="previewingFile" (close)="previewingFile = null">
