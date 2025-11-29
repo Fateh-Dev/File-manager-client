@@ -308,7 +308,7 @@ export class FileGridComponent {
 
   onDeleteFolder(folder: Folder) {
     this.showMenuFor = null;
-    if (confirm(`Are you sure you want to delete "${folder.name}"? This action cannot be undone.`)) {
+    if (confirm(`Are you sure you want to delete "${folder.name}" and all its contents? They will be moved to the Recycle Bin.`)) {
       this.deleteFolder.emit(folder);
     }
   }

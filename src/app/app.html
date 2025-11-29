@@ -28,7 +28,8 @@
           </div>
           <input type="text"
             class="block w-64 pl-10 pr-3 py-1.5 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
-            placeholder="Search files and folders..." [value]="searchQuery" (input)="onSearch($event)">
+            placeholder="Search files and folders..." [value]="searchQuery" (input)="onSearch($event)"
+            (keydown.enter)="onSearchEnter()">
           <div *ngIf="searchQuery" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
             (click)="clearSearch()">
             <svg class="h-4 w-4 text-gray-400 hover:text-gray-600" fill="none" stroke="currentColor"
@@ -54,7 +55,28 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
               d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
           </svg>
-          <app-input-modal [isOpen]="showFolderModal" title="Create New Folder" placeholder="Enter folder name"
-            submitText="Create" (submit)="onFolderNameSubmit($event)" (cancel)="onFolderModalCancel()">
-          </app-input-modal>
+          <span>Logout</span>
+        </button>
       </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-hidden relative">
+      <app-file-grid [folders]="folders" [files]="files" [currentFolder]="currentFolder"
+        [breadcrumbTrail]="breadcrumbTrail" [isLoading]="isLoading" (openFolder)="onOpenFolder($event)"
+        (previewFile)="previewFile($event)" (downloadFile)="downloadFile($event)" (uploadFiles)="uploadFiles($event)"
+        (navigateUp)="navigateUp()" (navigateToBreadcrumb)="navigateToBreadcrumb($event)"
+        (renameFolder)="onRenameFolder($event)" (deleteFolder)="onDeleteFolder($event)"
+        (moveFolder)="onMoveFolder($event)" (moveFile)="onMoveFile($event)">
+      </app-file-grid>
+    </main>
+  </div>
+
+  <!-- Modals -->
+  <app-input-modal [isOpen]="showFolderModal" title="Create New Folder" placeholder="Enter folder name"
+    submitText="Create" (submit)="onFolderNameSubmit($event)" (cancel)="onFolderModalCancel()">
+  </app-input-modal>
+
+  <app-preview-modal *ngIf="previewingFile" [file]="previewingFile" (close)="previewingFile = null">
+  </app-preview-modal>
+</div>

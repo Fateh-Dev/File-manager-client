@@ -269,6 +269,7 @@ export class App implements OnInit {
     this.searchQuery = input.value;
 
     if (!this.searchQuery.trim()) {
+      // Immediately restore folder view when search is cleared
       if (this.currentFolderId !== -1) {
         this.loadFolder(this.currentFolderId);
       } else {
@@ -278,18 +279,38 @@ export class App implements OnInit {
       return;
     }
 
+    // Don't trigger search automatically - only on Enter key
+  }
+
+  onSearchEnter() {
+    if (this.searchQuery && this.searchQuery.trim()) {
+      // Trigger search on Enter
+      this.performSearch(this.searchQuery);
+    }
+  }
+
+  private performSearch(searchQuery: string) {
+    // Skip if query is empty (cleared)
+    if (!searchQuery.trim()) {
+      return;
+    }
+
     this.isLoading = true;
-    this.fileService.search(this.searchQuery).subscribe({
+    this.cdr.detectChanges(); // Force update to show loading state
+
+    this.fileService.search(searchQuery).subscribe({
       next: (results) => {
         this.folders = results.folders;
         this.files = results.files;
-        this.currentFolder = { id: -1, name: 'Search Results', parentFolderId: null, ownerId: 0, subFolders: [], files: [] };
+        this.currentFolder = { id: -1, name: 'Search Results', parentFolderId: undefined, subFolders: [], files: [] };
         this.breadcrumbTrail = [{ id: 1, name: 'Root' }, { id: -1, name: 'Search Results' }];
         this.isLoading = false;
+        this.cdr.detectChanges(); // Force update after data is loaded
       },
       error: (error) => {
         console.error('Error searching:', error);
         this.isLoading = false;
+        this.cdr.detectChanges(); // Force update on error
       }
     });
   }
