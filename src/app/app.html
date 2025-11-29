@@ -1,0 +1,59 @@
+<app-login *ngIf="!isAuthenticated"></app-login>
+
+<div *ngIf="isAuthenticated" class="flex h-screen bg-gray-50">
+  <app-sidebar (navigateHome)="navigateToHome()"></app-sidebar>
+
+  <div class="flex-1 flex flex-col overflow-hidden">
+    <header class="bg-white border-b border-gray-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
+      <div class="flex items-center space-x-3">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+            </svg>
+          </div>
+          <h1 class="text-lg font-bold text-gray-800">
+            File Manager
+          </h1>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2">
+        <button
+          class="flex items-center space-x-1.5 bg-blue-500 text-white px-3 py-1.5 rounded-md hover:bg-blue-600 transition-colors text-sm font-medium"
+          (click)="createFolder()">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span>New Folder</span>
+        </button>
+        <button
+          class="flex items-center space-x-1.5 text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors text-sm font-medium"
+          (click)="logout()">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+          </svg>
+          <span>Logout</span>
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 overflow-hidden">
+      <app-file-grid [folders]="folders" [files]="files" [currentFolder]="currentFolder"
+        [breadcrumbTrail]="breadcrumbTrail" [isLoading]="isLoading" (openFolder)="onOpenFolder($event)"
+        (previewFile)="previewFile($event)" (downloadFile)="downloadFile($event)" (uploadFiles)="uploadFiles($event)"
+        (navigateUp)="navigateUp()" (navigateToBreadcrumb)="navigateToBreadcrumb($event)"
+        (renameFolder)="onRenameFolder($event)" (deleteFolder)="onDeleteFolder($event)"
+        (moveFolder)="onMoveFolder($event)">
+      </app-file-grid>
+    </main>
+  </div>
+
+  <app-preview-modal [file]="previewingFile" (close)="previewingFile = null" (download)="downloadFile($event)">
+  </app-preview-modal>
+
+  <app-input-modal [isOpen]="showFolderModal" title="Create New Folder" placeholder="Enter folder name"
+    submitText="Create" (submit)="onFolderNameSubmit($event)" (cancel)="onFolderModalCancel()">
+  </app-input-modal>
+</div>
