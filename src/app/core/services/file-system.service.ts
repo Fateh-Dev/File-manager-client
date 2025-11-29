@@ -52,4 +52,32 @@ export class FileSystemService {
     deleteFile(fileId: number): Observable<any> {
         return this.http.delete(`${this.apiUrl}/file/${fileId}`);
     }
+
+    getRecycleBin(): Observable<any> {
+        return this.http.get(`${this.apiUrl}/recycle-bin`);
+    }
+
+    restoreFolder(folderId: number): Observable<any> {
+        return this.http.put(`${this.apiUrl}/folder/${folderId}/restore`, {});
+    }
+
+    restoreFile(fileId: number): Observable<any> {
+        return this.http.put(`${this.apiUrl}/file/${fileId}/restore`, {});
+    }
+
+    purgeFolder(folderId: number): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/folder/${folderId}/purge`);
+    }
+
+    purgeFile(fileId: number): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/file/${fileId}/purge`);
+    }
+
+    getRecentFiles(): Observable<any> {
+        return this.http.get(`${this.apiUrl}/recent`);
+    }
+
+    getDownloads(): Observable<any> {
+        return this.http.get(`${this.apiUrl}/downloads`);
+    }
 }

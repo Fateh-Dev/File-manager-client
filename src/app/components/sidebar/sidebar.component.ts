@@ -2,10 +2,10 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
-    selector: 'app-sidebar',
-    standalone: true,
-    imports: [CommonModule],
-    template: `
+  selector: 'app-sidebar',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
     <div class="w-56 bg-white h-full border-r border-gray-200 flex flex-col shadow-sm">
       <div class="p-4 py-2.5 border-b border-gray-200">
         <div class="flex items-center space-x-2">
@@ -33,17 +33,26 @@ import { CommonModule } from '@angular/common';
           <div class="pt-3 mt-3 border-t border-gray-200">
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">Quick Access</p>
             <div class="space-y-0.5">
-              <div class="p-2 rounded-md flex items-center text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors text-sm">
+              <div class="p-2 rounded-md flex items-center text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors text-sm"
+                   (click)="navigateRecent.emit()">
                 <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <span class="text-xs">Recent Files</span>
               </div>
-              <div class="p-2 rounded-md flex items-center text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors text-sm">
+              <div class="p-2 rounded-md flex items-center text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors text-sm"
+                   (click)="navigateDownloads.emit()">
                 <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
                 </svg>
                 <span class="text-xs">Downloads</span>
+              </div>
+              <div class="p-2 rounded-md flex items-center text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors text-sm"
+                   (click)="navigateRecycleBin.emit()">
+                <svg class="w-4 h-4 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+                <span class="text-xs">Recycle Bin</span>
               </div>
             </div>
           </div>
@@ -62,5 +71,8 @@ import { CommonModule } from '@angular/common';
   `
 })
 export class SidebarComponent {
-    @Output() navigateHome = new EventEmitter<void>();
+  @Output() navigateHome = new EventEmitter<void>();
+  @Output() navigateRecent = new EventEmitter<void>();
+  @Output() navigateDownloads = new EventEmitter<void>();
+  @Output() navigateRecycleBin = new EventEmitter<void>();
 }

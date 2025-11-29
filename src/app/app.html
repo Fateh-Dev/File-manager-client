@@ -1,7 +1,8 @@
 <app-login *ngIf="!isAuthenticated"></app-login>
 
 <div *ngIf="isAuthenticated" class="flex h-screen bg-gray-50">
-  <app-sidebar (navigateHome)="navigateToHome()"></app-sidebar>
+  <app-sidebar (navigateHome)="navigateToHome()" (navigateRecent)="loadRecentFiles()"
+    (navigateDownloads)="loadDownloads()" (navigateRecycleBin)="loadRecycleBin()"></app-sidebar>
 
   <div class="flex-1 flex flex-col overflow-hidden">
     <header class="bg-white border-b border-gray-200 px-4 py-2.5 flex justify-between items-center shadow-sm">
@@ -27,7 +28,7 @@
             </svg>
           </div>
           <input type="text"
-            class="block w-64 pl-10 pr-3 py-1.5 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
+            class="block w-64 pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
             placeholder="Search files and folders..." [value]="searchQuery" (input)="onSearch($event)"
             (keydown.enter)="onSearchEnter()">
           <div *ngIf="searchQuery" class="absolute inset-y-0 right-0 pr-3 flex items-center cursor-pointer"
@@ -40,7 +41,7 @@
         </div>
       </div>
       <div class="flex items-center space-x-2">
-        <button
+        <button *ngIf="viewMode === 'standard'"
           class="flex items-center space-x-1.5 bg-blue-500 text-white px-3 py-1.5 rounded-md hover:bg-blue-600 transition-colors text-sm font-medium"
           (click)="createFolder()">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,11 +64,13 @@
     <!-- Main Content -->
     <main class="flex-1 overflow-hidden relative">
       <app-file-grid [folders]="folders" [files]="files" [currentFolder]="currentFolder"
-        [breadcrumbTrail]="breadcrumbTrail" [isLoading]="isLoading" (openFolder)="onOpenFolder($event)"
-        (previewFile)="previewFile($event)" (downloadFile)="downloadFile($event)" (uploadFiles)="uploadFiles($event)"
-        (navigateUp)="navigateUp()" (navigateToBreadcrumb)="navigateToBreadcrumb($event)"
-        (renameFolder)="onRenameFolder($event)" (deleteFolder)="onDeleteFolder($event)"
-        (moveFolder)="onMoveFolder($event)" (moveFile)="onMoveFile($event)" (deleteFile)="onDeleteFile($event)">
+        [breadcrumbTrail]="breadcrumbTrail" [isLoading]="isLoading" [viewMode]="viewMode"
+        (openFolder)="onOpenFolder($event)" (previewFile)="previewFile($event)" (downloadFile)="downloadFile($event)"
+        (uploadFiles)="uploadFiles($event)" (navigateUp)="navigateUp()"
+        (navigateToBreadcrumb)="navigateToBreadcrumb($event)" (renameFolder)="onRenameFolder($event)"
+        (deleteFolder)="onDeleteFolder($event)" (moveFolder)="onMoveFolder($event)" (moveFile)="onMoveFile($event)"
+        (deleteFile)="onDeleteFile($event)" (restoreFolder)="onRestoreFolder($event)"
+        (restoreFile)="onRestoreFile($event)" (purgeFolder)="onPurgeFolder($event)" (purgeFile)="onPurgeFile($event)">
       </app-file-grid>
     </main>
   </div>

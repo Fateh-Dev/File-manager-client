@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FileMetadata } from '../../core/models/file.model';
 import { Folder } from '../../core/models/folder.model';
@@ -13,7 +13,8 @@ import { Folder } from '../../core/models/folder.model';
       (dragover)="onDragOver($event)"
       (dragleave)="onDragLeave($event)"
       (drop)="onDrop($event)"
-      (click)="closeMenu()">
+      (drop)="onDrop($event)"
+      (drop)="onDrop($event)">
       
       <!-- Drag and drop overlay -->
       <div *ngIf="isDragging" class="fixed inset-0 bg-blue-500/20 border-4 border-dashed border-blue-500 z-50 flex items-center justify-center pointer-events-none animate-fade-in">
@@ -65,7 +66,7 @@ import { Folder } from '../../core/models/folder.model';
             </ng-container>
           </div>
         </div>
-        <label class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors cursor-pointer shadow-sm text-sm font-medium">
+        <label *ngIf="viewMode === 'standard'" class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors cursor-pointer shadow-sm text-sm font-medium">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
           </svg>
@@ -144,7 +145,7 @@ import { Folder } from '../../core/models/folder.model';
       
       <div class="absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
         <button 
-          class="w-6 h-6 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition-all"
+          class="menu-toggle w-6 h-6 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition-all"
           (click)="onFolderMenuClick($event, folder)"
           title="Folder options">
           <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -154,29 +155,47 @@ import { Folder } from '../../core/models/folder.model';
       </div>
 
       <div *ngIf="showMenuFor?.id === folder.id" 
-        class="absolute right-0 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
+        class="menu-dropdown absolute right-0 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
         (click)="$event.stopPropagation()"
         (mousedown)="$event.stopPropagation()">
         
-        <button 
-          class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-          (click)="onRenameFolder(folder)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-          <span>Rename</span>
-        </button>
-        <button 
-          class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-          (click)="onMoveFolder(folder)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
-          <span>Move</span>
-        </button>
-        <div class="border-t border-gray-200 my-1"></div>
-        <button 
-          class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-          (click)="onDeleteFolder(folder)">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-          <span>Delete</span>
-        </button>
+        <ng-container *ngIf="viewMode !== 'recycle-bin'">
+          <button 
+            class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+            (click)="onRenameFolder(folder)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            <span>Rename</span>
+          </button>
+          <button 
+            class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+            (click)="onMoveFolder(folder)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+            <span>Move</span>
+          </button>
+          <div class="border-t border-gray-200 my-1"></div>
+          <button 
+            class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+            (click)="onDeleteFolder(folder)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <span>Delete</span>
+          </button>
+        </ng-container>
+
+        <ng-container *ngIf="viewMode === 'recycle-bin'">
+          <button 
+            class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+            (click)="restoreFolder.emit(folder); closeMenu()">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            <span>Restore</span>
+          </button>
+          <div class="border-t border-gray-200 my-1"></div>
+          <button 
+            class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+            (click)="onPurgeFolder(folder)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <span>Delete Permanently</span>
+          </button>
+        </ng-container>
       </div>
       
     </div>
@@ -207,7 +226,7 @@ import { Folder } from '../../core/models/folder.model';
           <!-- File actions menu button -->
           <div class="absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
             <button 
-              class="w-6 h-6 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition-all"
+              class="menu-toggle w-6 h-6 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition-all"
               (click)="onFileMenuClick($event, file)"
               title="File options">
               <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -218,23 +237,41 @@ import { Folder } from '../../core/models/folder.model';
 
           <!-- File context menu -->
           <div *ngIf="showMenuForFile?.id === file.id" 
-            class="absolute right-0 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
+            class="menu-dropdown absolute right-0 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
             (click)="$event.stopPropagation()"
             (mousedown)="$event.stopPropagation()">
             
-            <button 
-              class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
-              (click)="downloadFile.emit(file); closeFileMenu()">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-              <span>Download</span>
-            </button>
-            <div class="border-t border-gray-200 my-1"></div>
-            <button 
-              class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
-              (click)="onDeleteFile(file)">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-              <span>Delete</span>
-            </button>
+            <ng-container *ngIf="viewMode !== 'recycle-bin'">
+              <button 
+                class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                (click)="downloadFile.emit(file); closeFileMenu()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                <span>Download</span>
+              </button>
+              <div class="border-t border-gray-200 my-1"></div>
+              <button 
+                class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                (click)="onDeleteFile(file)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <span>Delete</span>
+              </button>
+            </ng-container>
+
+            <ng-container *ngIf="viewMode === 'recycle-bin'">
+              <button 
+                class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                (click)="restoreFile.emit(file); closeFileMenu()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                <span>Restore</span>
+              </button>
+              <div class="border-t border-gray-200 my-1"></div>
+              <button 
+                class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                (click)="onPurgeFile(file)">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <span>Delete Permanently</span>
+              </button>
+            </ng-container>
           </div>
           </div>
         </div>
@@ -248,6 +285,7 @@ export class FileGridComponent {
   @Input() currentFolder: Folder | null = null;
   @Input() breadcrumbTrail: { id: number, name: string }[] = [];
   @Input() isLoading = false;
+  @Input() viewMode: 'standard' | 'recent' | 'recycle-bin' = 'standard';
   @Output() openFolder = new EventEmitter<Folder>();
   @Output() previewFile = new EventEmitter<FileMetadata>();
   @Output() downloadFile = new EventEmitter<FileMetadata>();
@@ -259,6 +297,10 @@ export class FileGridComponent {
   @Output() moveFolder = new EventEmitter<{ folder: Folder, targetFolderId: number | null }>();
   @Output() moveFile = new EventEmitter<{ file: FileMetadata, targetFolderId: number | null }>();
   @Output() deleteFile = new EventEmitter<FileMetadata>();
+  @Output() restoreFolder = new EventEmitter<Folder>();
+  @Output() restoreFile = new EventEmitter<FileMetadata>();
+  @Output() purgeFolder = new EventEmitter<Folder>();
+  @Output() purgeFile = new EventEmitter<FileMetadata>();
 
   isDragging = false;
   draggingFolder: Folder | null = null;
@@ -316,6 +358,17 @@ export class FileGridComponent {
 
   closeMenu() {
     this.showMenuFor = null;
+    this.showMenuForFile = null;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    const target = event.target as HTMLElement;
+    // Don't close if clicking a menu toggle button or inside a dropdown
+    if (target.closest('.menu-toggle') || target.closest('.menu-dropdown')) {
+      return;
+    }
+    this.closeMenu();
   }
 
   onFolderMenuClick(event: Event, folder: Folder) {
@@ -352,6 +405,16 @@ export class FileGridComponent {
     if (confirm(`Are you sure you want to delete "${file.name}"? It will be moved to the Recycle Bin.`)) {
       this.deleteFile.emit(file);
     }
+  }
+
+  onPurgeFolder(folder: Folder) {
+    this.showMenuFor = null;
+    this.purgeFolder.emit(folder);
+  }
+
+  onPurgeFile(file: FileMetadata) {
+    this.showMenuForFile = null;
+    this.purgeFile.emit(file);
   }
 
   onMoveFolder(folder: Folder) {
