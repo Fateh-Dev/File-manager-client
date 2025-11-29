@@ -27,6 +27,7 @@ export class App implements OnInit {
   isAuthenticated = false;
   isLoading = false;
   breadcrumbTrail: { id: number, name: string }[] = [{ id: 1, name: 'Root' }];
+  searchQuery: string = '';
 
   constructor(
     private fileService: FileSystemService,
@@ -244,5 +245,38 @@ export class App implements OnInit {
         alert('Failed to move folder: ' + errorMsg);
       }
     });
+  }
+
+  onSearch(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const query = input.value;
+    this.searchQuery = query;
+
+    if (!query || query.trim() === '') {
+      this.loadFolder(this.currentFolderId);
+      return;
+    }
+
+    this.isLoading = true;
+    this.fileService.search(query).subscribe({
+      next: (res) => {
+        console.log('Search results:', res);
+        this.folders = res.folders || [];
+        this.files = res.files || [];
+        this.currentFolder = { id: -1, name: `Search results for "${query}"` };
+        this.breadcrumbTrail = [{ id: 1, name: 'Root' }, { id: -1, name: 'Search Results' }];
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Search error:', err);
+        this.isLoading = false;
+      }
+    });
+  }
+
+  clearSearch() {
+    this.searchQuery = '';
+    this.loadFolder(this.currentFolderId);
   }
 }

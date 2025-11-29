@@ -40,4 +40,8 @@ export class FileSystemService {
     moveFolder(folderId: number, targetFolderId: number | null): Observable<any> {
         return this.http.put(`${this.apiUrl}/folder/${folderId}/move`, { targetFolderId });
     }
+
+    search(query: string): Observable<any> {
+        return this.http.get(`${this.apiUrl}/search?query=${encodeURIComponent(query)}`);
+    }
 }
