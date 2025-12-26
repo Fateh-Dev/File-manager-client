@@ -23,6 +23,7 @@ export class App implements OnInit {
   currentFolder: Folder | null = null;
   previewingFile: FileMetadata | null = null;
   currentFolderId: number = 1;
+  rootFolderId: number = 1; // Will be set when app initializes
   showFolderModal = false;
   isAuthenticated = false;
   isLoading = false;
@@ -42,9 +43,24 @@ export class App implements OnInit {
   ngOnInit() {
     if (this.isAuthenticated) {
       this.isLoading = true;
-      setTimeout(() => {
-        this.loadFolder(1);
-      }, 50);
+      // Get the user's root folder ID
+      this.fileService.getRootFolder().subscribe({
+        next: (rootFolder: any) => {
+          const rootFolderId = rootFolder.id || 1;
+          this.rootFolderId = rootFolderId;
+          this.currentFolderId = rootFolderId;
+          this.breadcrumbTrail = [{ id: rootFolderId, name: rootFolder.name || 'Root' }];
+          this.loadFolder(rootFolderId);
+        },
+        error: (err: any) => {
+          console.error('Error getting root folder:', err);
+          // Fallback to folder 1 if root folder endpoint fails
+          this.rootFolderId = 1;
+          this.currentFolderId = 1;
+          this.breadcrumbTrail = [{ id: 1, name: 'Root' }];
+          this.loadFolder(1);
+        }
+      });
     }
   }
 
@@ -118,7 +134,7 @@ export class App implements OnInit {
         this.folders = res.folders || [];
         this.files = res.files || [];
         this.currentFolder = { id: -1, name: 'Recycle Bin' };
-        this.breadcrumbTrail = [{ id: 1, name: 'Root' }, { id: -1, name: 'Recycle Bin' }];
+        this.breadcrumbTrail = [{ id: this.rootFolderId, name: 'Root' }, { id: -1, name: 'Recycle Bin' }];
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -142,7 +158,7 @@ export class App implements OnInit {
       next: (res) => {
         this.files = res.files || [];
         this.currentFolder = { id: -2, name: 'Recent Files' };
-        this.breadcrumbTrail = [{ id: 1, name: 'Root' }, { id: -2, name: 'Recent Files' }];
+        this.breadcrumbTrail = [{ id: this.rootFolderId, name: 'Root' }, { id: -2, name: 'Recent Files' }];
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -186,7 +202,7 @@ export class App implements OnInit {
           this.files = [];
         }
 
-        this.breadcrumbTrail = [{ id: 1, name: 'Root' }, { id: res.id, name: 'Downloads' }];
+        this.breadcrumbTrail = [{ id: this.rootFolderId, name: 'Root' }, { id: res.id, name: 'Downloads' }];
         this.isLoading = false;
         this.cdr.detectChanges();
       },
@@ -248,8 +264,9 @@ export class App implements OnInit {
   }
 
   navigateToHome() {
-    this.breadcrumbTrail = [{ id: 1, name: 'Root' }];
-    this.loadFolder(1);
+    this.currentFolderId = this.rootFolderId;
+    this.breadcrumbTrail = [{ id: this.rootFolderId, name: 'Root' }];
+    this.loadFolder(this.rootFolderId);
   }
 
   navigateUp() {
@@ -338,11 +355,14 @@ export class App implements OnInit {
       this.fileService.createFolder({ name, parentFolderId: this.currentFolderId }).subscribe({
         next: (res) => {
           console.log('Folder created successfully:', res);
+          this.isLoading = false;
           this.loadFolder(this.currentFolderId);
         },
         error: (err) => {
           console.error('Create folder error:', err);
           this.isLoading = false;
+          const errorMsg = err.error?.error || err.error?.message || err.message || 'Unknown error';
+          alert('Failed to create folder: ' + errorMsg);
         }
       });
     }
@@ -439,8 +459,8 @@ export class App implements OnInit {
       if (this.currentFolderId !== -1) {
         this.loadFolder(this.currentFolderId);
       } else {
-        this.currentFolderId = 1;
-        this.loadFolder(1);
+        this.currentFolderId = this.rootFolderId;
+        this.loadFolder(this.rootFolderId);
       }
       return;
     }
@@ -469,7 +489,7 @@ export class App implements OnInit {
         this.folders = results.folders;
         this.files = results.files;
         this.currentFolder = { id: -1, name: 'Search Results', parentFolderId: undefined, subFolders: [], files: [] };
-        this.breadcrumbTrail = [{ id: 1, name: 'Root' }, { id: -1, name: 'Search Results' }];
+        this.breadcrumbTrail = [{ id: this.rootFolderId, name: 'Root' }, { id: -1, name: 'Search Results' }];
         this.isLoading = false;
         this.cdr.detectChanges(); // Force update after data is loaded
       },
@@ -483,7 +503,7 @@ export class App implements OnInit {
 
   clearSearch() {
     this.searchQuery = '';
-    this.currentFolderId = 1;
-    this.loadFolder(1);
+    this.currentFolderId = this.rootFolderId;
+    this.loadFolder(this.rootFolderId);
   }
 }

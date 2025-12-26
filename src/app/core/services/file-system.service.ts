@@ -10,6 +10,10 @@ export class FileSystemService {
 
     constructor(private http: HttpClient) { }
 
+    getRootFolder(): Observable<any> {
+        return this.http.get(`${this.apiUrl}/root`);
+    }
+
     getFolderContents(folderId: number): Observable<any> {
         return this.http.get(`${this.apiUrl}/folder/${folderId}`);
     }
