@@ -1,0 +1,135 @@
+<div class="pdf-editor-container">
+  <div class="editor-header">
+    <h2>Éditeur de Modèle PDF</h2>
+    <form [formGroup]="fieldForm" class="header-actions">
+      <div class="input-group">
+        <label for="templateName">Nom du modèle</label>
+        <input
+          id="templateName"
+          type="text"
+          formControlName="templateName"
+          placeholder="Ex: Facture 2024"
+        />
+      </div>
+
+      <div class="file-upload">
+        <label class="btn-upload">
+          <input
+            type="file"
+            (change)="onImageUpload($event)"
+            accept="image/png, image/jpeg"
+            hidden
+          />
+          {{ imageUrl ? "Changer l'image" : 'Charger un modèle (PNG/JPG)' }}
+        </label>
+      </div>
+
+      <button
+        class="btn-save"
+        [disabled]="fieldForm.invalid || fields.length === 0"
+        (click)="onSave()"
+      >
+        Enregistrer le modèle
+      </button>
+    </form>
+  </div>
+
+  <div class="editor-main">
+    <!-- Sidebar: List of fields -->
+    <div class="fields-sidebar">
+      <h3>Champs ({{ fields.length }})</h3>
+      <div class="fields-list">
+        <div
+          *ngFor="let field of fields"
+          class="field-item"
+          [class.selected]="selectedFieldId === field.id"
+          (click)="selectField(field.id)"
+        >
+          <span class="field-name">{{ field.fieldName }}</span>
+          <button class="btn-delete" (click)="deleteField(field.id); $event.stopPropagation()">
+            ×
+          </button>
+        </div>
+        <div *ngIf="fields.length === 0" class="empty-state">
+          Aucun champ défini. Dessinez sur l'image pour commencer.
+        </div>
+      </div>
+
+      <div class="field-properties" *ngIf="getSelectedField() as selectedField">
+        <h4>Propriétés du champ</h4>
+        <div [formGroup]="fieldForm">
+          <label>Nom du champ</label>
+          <input type="text" formControlName="fieldName" />
+        </div>
+        <div class="field-metrics">
+          <p>X: {{ selectedField.xPercent | number : '1.1-1' }}%</p>
+          <p>Y: {{ selectedField.yPercent | number : '1.1-1' }}%</p>
+          <p>L: {{ selectedField.widthPercent | number : '1.1-1' }}%</p>
+          <p>H: {{ selectedField.heightPercent | number : '1.1-1' }}%</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Canvas: Image and Draggable Fields -->
+    <div class="canvas-area">
+      <div *ngIf="!imageUrl" class="upload-placeholder">
+        <div class="placeholder-content">
+          <svg
+            class="w-16 h-16 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+            ></path>
+          </svg>
+          <p>Veuillez charger une image pour commencer l'édition</p>
+        </div>
+      </div>
+
+      <div #imageContainer class="image-wrapper" *ngIf="imageUrl" (mousedown)="onMouseDown($event)">
+        <img
+          #templateImage
+          [src]="imageUrl"
+          (load)="cdr.markForCheck()"
+          alt="Template"
+          draggable="false"
+        />
+
+        <div
+          *ngFor="let field of fields"
+          class="field-box"
+          [class.active]="selectedFieldId === field.id"
+          [style.left.%]="field.xPercent"
+          [style.top.%]="field.yPercent"
+          [style.width.%]="field.widthPercent"
+          [style.height.%]="field.heightPercent"
+        >
+          <span class="field-label">{{ field.fieldName }}</span>
+
+          <!-- Resize Handles -->
+          <ng-container *ngIf="selectedFieldId === field.id">
+            <div class="handle top-left"></div>
+            <div class="handle top-right"></div>
+            <div class="handle bottom-left"></div>
+            <div class="handle bottom-right"></div>
+          </ng-container>
+        </div>
+
+        <!-- Drawing Preview -->
+        <div
+          class="field-box preview"
+          *ngIf="mode === 'DRAWING' && getSelectedField() as f"
+          [style.left.%]="f.xPercent"
+          [style.top.%]="f.yPercent"
+          [style.width.%]="f.widthPercent"
+          [style.height.%]="f.heightPercent"
+        ></div>
+      </div>
+    </div>
+  </div>
+</div>
