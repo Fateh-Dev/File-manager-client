@@ -1,5 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-sidebar',
@@ -77,6 +78,31 @@ import { CommonModule } from '@angular/common';
           </button>
           <!-- </div> -->
 
+          <!-- Admin Link -->
+          <button
+            *ngIf="isAdmin"
+            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center text-gray-700 hover:text-blue-600 transition-colors text-sm"
+            (click)="navigateAdmin.emit()"
+          >
+            <div
+              class="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center mr-2 group-hover:bg-blue-500 transition-colors"
+            >
+              <svg
+                class="w-4 h-4 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                ></path>
+              </svg>
+            </div>
+            <span class="font-medium">Administration</span>
+          </button>
           <div class="pt-3 mt-3 border-t border-gray-200">
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">
               Accès Rapide
@@ -147,18 +173,55 @@ import { CommonModule } from '@angular/common';
         <div class="bg-gray-50 rounded-md p-3">
           <p class="text-xs font-semibold text-gray-600 mb-1">Stockage</p>
           <div class="w-full bg-gray-200 rounded-full h-1.5 mb-1.5">
-            <div class="bg-blue-500 h-1.5 rounded-full" style="width: 45%"></div>
+            <div
+              class="h-1.5 rounded-full transition-all"
+              [ngClass]="
+                storagePercentage > 90
+                  ? 'bg-red-500'
+                  : storagePercentage > 70
+                  ? 'bg-yellow-500'
+                  : 'bg-blue-500'
+              "
+              [style.width.%]="storagePercentage"
+            ></div>
           </div>
-          <p class="text-xs text-gray-500">2.1 Go sur 5 Go utilisés</p>
+          <p class="text-xs text-gray-500">
+            {{ usedStorageGB }} Go sur {{ storageLimitGB }} Go utilisés
+          </p>
         </div>
       </div>
     </div>
   `,
 })
-export class SidebarComponent {
+export class SidebarComponent implements OnInit {
+  @Input() isAdmin = false;
   @Output() navigateHome = new EventEmitter<void>();
   @Output() navigatePdfEditor = new EventEmitter<void>();
   @Output() navigateRecent = new EventEmitter<void>();
   @Output() navigateDownloads = new EventEmitter<void>();
   @Output() navigateRecycleBin = new EventEmitter<void>();
+  @Output() navigateAdmin = new EventEmitter<void>();
+
+  usedStorageGB = '0';
+  storageLimitGB = '5';
+  storagePercentage = 0;
+
+  constructor(private authService: AuthService) {}
+
+  ngOnInit() {
+    this.loadStorageInfo();
+  }
+
+  loadStorageInfo() {
+    this.authService.getMe().subscribe({
+      next: (user) => {
+        const usedGB = user.usedStorage / (1024 * 1024 * 1024);
+        const limitGB = user.storageLimit / (1024 * 1024 * 1024);
+        this.usedStorageGB = usedGB.toFixed(2);
+        this.storageLimitGB = limitGB.toFixed(1);
+        this.storagePercentage = limitGB > 0 ? Math.min((usedGB / limitGB) * 100, 100) : 0;
+      },
+      error: (err) => console.error('Failed to load storage info', err),
+    });
+  }
 }

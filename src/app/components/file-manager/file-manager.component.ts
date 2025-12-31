@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FileGridComponent } from '../file-grid/file-grid.component';
 import { PreviewModalComponent } from '../preview-modal/preview-modal.component';
 import { InputModalComponent } from '../input-modal/input-modal.component';
+import { DialogComponent } from '../dialog/dialog.component';
 import { FileSystemService } from '../../core/services/file-system.service';
 import { NavigationService } from '../../core/services/navigation.service';
 import { Folder } from '../../core/models/folder.model';
@@ -12,7 +13,13 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-file-manager',
   standalone: true,
-  imports: [CommonModule, FileGridComponent, PreviewModalComponent, InputModalComponent],
+  imports: [
+    CommonModule,
+    FileGridComponent,
+    PreviewModalComponent,
+    InputModalComponent,
+    DialogComponent,
+  ],
   template: `
     <div class="h-full flex flex-col overflow-hidden">
       <main class="flex-1 overflow-hidden relative">
@@ -56,8 +63,18 @@ import { Subscription } from 'rxjs';
         *ngIf="previewingFile"
         [file]="previewingFile"
         (close)="previewingFile = null"
+        (download)="downloadFile($event)"
       >
       </app-preview-modal>
+
+      <app-dialog
+        [isOpen]="dialogData.isOpen"
+        [title]="dialogData.title"
+        [message]="dialogData.message"
+        [type]="dialogData.type"
+        [buttonText]="dialogData.buttonText"
+        (closed)="dialogData.isOpen = false"
+      ></app-dialog>
     </div>
   `,
 })
@@ -72,6 +89,14 @@ export class FileManagerComponent implements OnInit, OnDestroy {
   isLoading = false;
   breadcrumbTrail: { id: number; name: string }[] = [{ id: 1, name: 'Root' }];
   viewMode: 'standard' | 'recent' | 'recycle-bin' = 'standard';
+
+  dialogData = {
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'error' as 'success' | 'error' | 'info' | 'warning',
+    buttonText: 'OK',
+  };
 
   private subs = new Subscription();
 
@@ -258,10 +283,31 @@ export class FileManagerComponent implements OnInit, OnDestroy {
 
   uploadFiles(fileList: FileList) {
     Array.from(fileList).forEach((file) => {
-      this.fileService
-        .uploadFile(file, this.currentFolderId)
-        .subscribe(() => this.loadFolder(this.currentFolderId));
+      this.fileService.uploadFile(file, this.currentFolderId).subscribe({
+        next: () => this.loadFolder(this.currentFolderId),
+        error: (err) => {
+          if (err.error?.Error?.includes('quota') || err.error?.Error?.includes('Storage')) {
+            this.showErrorDialog(
+              'Quota de stockage dépassé',
+              'Vous avez atteint votre limite de stockage. Veuillez supprimer des fichiers ou contacter un administrateur.'
+            );
+          } else {
+            this.showErrorDialog('Erreur', 'Échec du téléchargement du fichier.');
+          }
+        },
+      });
     });
+  }
+
+  showErrorDialog(title: string, message: string) {
+    this.dialogData = {
+      isOpen: true,
+      title,
+      message,
+      type: 'error',
+      buttonText: 'OK',
+    };
+    this.cdr.detectChanges();
   }
 
   createFolder() {

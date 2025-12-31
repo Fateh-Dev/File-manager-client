@@ -15,6 +15,7 @@ import { NavigationService } from './core/services/navigation.service';
 })
 export class App implements OnInit {
   isAuthenticated = false;
+  isAdmin = false;
   searchQuery: string = '';
   showCreateFolder = false;
 
@@ -28,14 +29,16 @@ export class App implements OnInit {
   }
 
   ngOnInit() {
-    // Check authentication again in ngOnInit (handles page refresh)
-    this.checkAuthentication();
-    
+    // Subscribe to auth state changes
+    this.authService.currentUser$.subscribe(() => {
+      this.checkAuthentication();
+    });
+
     // Set up periodic token validation (check every 30 seconds)
     setInterval(() => {
       this.checkAuthentication();
     }, 30000);
-    
+
     // Listen for storage events (handles token changes from other tabs)
     if (typeof window !== 'undefined') {
       window.addEventListener('storage', (event) => {
@@ -44,9 +47,12 @@ export class App implements OnInit {
         }
       });
     }
-    
+
     this.navigationService.showCreateFolder$.subscribe((show) => {
-      this.showCreateFolder = show;
+      // Use microtask to avoid ExpressionChangedAfterItHasBeenCheckedError
+      Promise.resolve().then(() => {
+        this.showCreateFolder = show;
+      });
     });
   }
 
@@ -54,9 +60,11 @@ export class App implements OnInit {
     // Check if token exists and is valid
     if (this.authService.isAuthenticated()) {
       this.isAuthenticated = true;
+      this.isAdmin = this.authService.isAdmin();
     } else {
       // Token is missing or expired, redirect to login
       this.isAuthenticated = false;
+      this.isAdmin = false;
       // Clear any invalid token
       if (this.authService.getToken()) {
         this.authService.logout();
@@ -73,6 +81,10 @@ export class App implements OnInit {
 
   navigateToPdfEditor() {
     this.router.navigate(['/pdf-template']);
+  }
+
+  navigateToAdmin() {
+    this.router.navigate(['/admin']);
   }
 
   loadRecentFiles() {
@@ -115,6 +127,5 @@ export class App implements OnInit {
 
   logout() {
     this.authService.logout();
-    window.location.reload();
   }
 }

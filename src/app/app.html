@@ -2,8 +2,10 @@
 
 <div *ngIf="isAuthenticated" class="flex h-screen bg-gray-50">
   <app-sidebar
+    [isAdmin]="isAdmin"
     (navigateHome)="navigateToHome()"
     (navigatePdfEditor)="navigateToPdfEditor()"
+    (navigateAdmin)="navigateToAdmin()"
     (navigateRecent)="loadRecentFiles()"
     (navigateDownloads)="loadDownloads()"
     (navigateRecycleBin)="loadRecycleBin()"
