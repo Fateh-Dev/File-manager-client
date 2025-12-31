@@ -13,6 +13,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { FieldPosition } from '../../../core/models/field-position.model';
 import { TemplatePayload } from '../../../core/models/template-payload.model';
+import { FileSystemService } from '../../../core/services/file-system.service';
 
 type EditorMode = 'IDLE' | 'DRAWING' | 'MOVING' | 'RESIZING';
 
@@ -36,6 +37,8 @@ export class PdfTemplateEditorComponent implements OnInit {
 
   imageUrl: string | null = null;
   imageFile: File | null = null;
+  imageGuid: string | null = null;
+  isUploading = false;
 
   private startX = 0;
   private startY = 0;
@@ -44,7 +47,11 @@ export class PdfTemplateEditorComponent implements OnInit {
 
   fieldForm: FormGroup;
 
-  constructor(private fb: FormBuilder, public cdr: ChangeDetectorRef) {
+  constructor(
+    private fb: FormBuilder,
+    public cdr: ChangeDetectorRef,
+    private fileSystemService: FileSystemService
+  ) {
     this.fieldForm = this.fb.group({
       templateName: ['', Validators.required],
       fieldName: [''],
@@ -67,6 +74,8 @@ export class PdfTemplateEditorComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files[0]) {
       this.imageFile = input.files[0];
+
+      // 1. Preview locally
       const reader = new FileReader();
       reader.onload = (e) => {
         this.imageUrl = e.target?.result as string;
@@ -75,6 +84,28 @@ export class PdfTemplateEditorComponent implements OnInit {
         this.cdr.markForCheck();
       };
       reader.readAsDataURL(this.imageFile);
+
+      // 2. Upload immediately to get GUID
+      this.isUploading = true;
+      this.imageGuid = null;
+      this.cdr.markForCheck();
+
+      // We use folderId 1 as a default "Root" for templates
+      this.fileSystemService.uploadFile(this.imageFile, 1).subscribe({
+        next: (res: any) => {
+          // Assuming the backend returns the file metadata with a GUID 'id'
+          // Or however the backend structure is for returning the unique ID
+          this.imageGuid = res.id;
+          this.isUploading = false;
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error uploading template image:', err);
+          this.isUploading = false;
+          alert("Erreur lors du chargement de l'image sur le serveur.");
+          this.cdr.markForCheck();
+        },
+      });
     }
   }
 
@@ -222,12 +253,12 @@ export class PdfTemplateEditorComponent implements OnInit {
   }
 
   onSave(): void {
-    if (this.fieldForm.invalid || this.fields.length === 0 || !this.imageFile) return;
+    if (this.fieldForm.invalid || this.fields.length === 0 || !this.imageGuid) return;
 
     const payload: TemplatePayload = {
       templateName: this.fieldForm.value.templateName,
       fields: this.fields,
-      imageTemplate: this.imageFile,
+      imageTemplate: this.imageGuid,
     };
 
     this.templateSaved.emit(payload);

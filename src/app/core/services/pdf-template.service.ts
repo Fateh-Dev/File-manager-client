@@ -12,17 +12,7 @@ export class PdfTemplateService {
   constructor(private http: HttpClient) {}
 
   saveTemplate(payload: TemplatePayload): Observable<any> {
-    const formData = new FormData();
-    formData.append('templateName', payload.templateName);
-    formData.append('fields', JSON.stringify(payload.fields));
-
-    if (payload.imageTemplate instanceof File) {
-      formData.append('imageTemplate', payload.imageTemplate);
-    } else if (typeof payload.imageTemplate === 'string') {
-      // If it's a base64 string or URL, handle accordingly
-      formData.append('imageTemplateData', payload.imageTemplate);
-    }
-
-    return this.http.post(this.apiUrl, formData);
+    // Send as JSON payload since image is already uploaded and we only have the GUID
+    return this.http.post(this.apiUrl, payload);
   }
 }
