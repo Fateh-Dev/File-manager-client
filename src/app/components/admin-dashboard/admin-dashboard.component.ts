@@ -4,10 +4,12 @@ import { AdminService } from '../../core/services/admin.service';
 import { User } from '../../core/models/user.model';
 import { DialogComponent } from '../dialog/dialog.component';
 
+import { QuotaDialogComponent } from '../quota-dialog/quota-dialog.component';
+
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, DialogComponent],
+  imports: [CommonModule, DialogComponent, QuotaDialogComponent],
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit {
@@ -22,6 +24,11 @@ export class AdminDashboardComponent implements OnInit {
     buttonText: 'OK',
     showCancelButton: false,
     cancelText: 'Cancel',
+  };
+
+  quotaDialog = {
+    isOpen: false,
+    user: null as User | null,
   };
 
   pendingAction: { type: 'lock' | 'activate' | null; userId: number | null } = {
@@ -139,26 +146,31 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   editStorageLimit(user: User): void {
-    const currentLimitGB = user.storageLimit / (1024 * 1024 * 1024);
-    const newLimitGB = prompt('Enter new storage limit in GB:', currentLimitGB.toString());
+    this.quotaDialog = {
+      isOpen: true,
+      user: user,
+    };
+    this.cdr.detectChanges();
+  }
 
-    if (newLimitGB !== null) {
-      const limit = parseFloat(newLimitGB);
-      if (!isNaN(limit) && limit >= 0) {
-        const newLimitBytes = Math.floor(limit * 1024 * 1024 * 1024);
-        this.adminService.updateStorageLimit(user.id, newLimitBytes).subscribe({
-          next: () => {
-            this.loadUsers();
-            this.showDialog('Success', 'Storage limit updated successfully', 'success');
-          },
-          error: (err) => {
-            this.showDialog('Error', 'Failed to update storage limit', 'error');
-          },
-        });
-      } else {
-        this.showDialog('Error', 'Invalid storage limit', 'error');
-      }
+  onQuotaSubmit(newLimitBytes: number) {
+    if (this.quotaDialog.user) {
+      this.adminService.updateStorageLimit(this.quotaDialog.user.id, newLimitBytes).subscribe({
+        next: () => {
+          this.loadUsers();
+          this.quotaDialog.isOpen = false;
+          this.showDialog('Success', 'Storage limit updated successfully', 'success');
+        },
+        error: (err) => {
+          this.showDialog('Error', 'Failed to update storage limit', 'error');
+        },
+      });
     }
+  }
+
+  onQuotaCancel() {
+    this.quotaDialog.isOpen = false;
+    this.cdr.detectChanges();
   }
 
   closeDialog() {

@@ -119,4 +119,11 @@
     (closed)="closeDialog()"
     (confirmed)="onDialogConfirm()"
   ></app-dialog>
+
+  <app-quota-dialog
+    [isOpen]="quotaDialog.isOpen"
+    [user]="quotaDialog.user"
+    (submit)="onQuotaSubmit($event)"
+    (cancel)="onQuotaCancel()"
+  ></app-quota-dialog>
 </div>
