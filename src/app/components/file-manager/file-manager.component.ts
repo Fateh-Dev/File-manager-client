@@ -1,5 +1,6 @@
 import { Component, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpEventType } from '@angular/common/http';
 import { FileGridComponent } from '../file-grid/file-grid.component';
 import { PreviewModalComponent } from '../preview-modal/preview-modal.component';
 import { InputModalComponent } from '../input-modal/input-modal.component';
@@ -22,6 +23,35 @@ import { Subscription } from 'rxjs';
   ],
   template: `
     <div class="h-full flex flex-col overflow-hidden">
+      <!-- Upload Progress Overlay -->
+      <div
+        *ngIf="uploadQueue.length > 0"
+        class="fixed bottom-6 right-6 z-[100] w-80 max-h-96 overflow-y-auto space-y-3"
+      >
+        <div
+          *ngFor="let item of uploadQueue"
+          class="bg-white rounded-xl shadow-2xl border border-gray-100 p-4 animate-slide-in"
+        >
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-gray-700 truncate w-48">{{ item.fileName }}</span>
+            <span class="text-[10px] font-bold text-blue-600 px-2 py-0.5 bg-blue-50 rounded-full"
+              >{{ item.progress }}%</span
+            >
+          </div>
+          <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+            <div
+              class="bg-blue-600 h-2 rounded-full transition-all duration-300 ease-out"
+              [style.width.%]="item.progress"
+            ></div>
+          </div>
+          <div class="mt-2 flex justify-between items-center">
+            <span class="text-[10px] text-gray-400 font-medium">
+              {{ item.progress < 100 ? 'En cours...' : 'Finalisation...' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <main class="flex-1 overflow-hidden relative">
         <app-file-grid
           [folders]="folders"
@@ -51,9 +81,10 @@ import { Subscription } from 'rxjs';
 
       <app-input-modal
         [isOpen]="showFolderModal"
-        title="Créer un Nouveau Dossier"
-        placeholder="Entrez le nom du dossier"
-        submitText="Créer"
+        [title]="modalTitle"
+        [placeholder]="modalPlaceholder"
+        [submitText]="modalSubmitText"
+        [value]="modalValue"
         (submit)="onFolderNameSubmit($event)"
         (cancel)="onFolderModalCancel()"
       >
@@ -73,10 +104,30 @@ import { Subscription } from 'rxjs';
         [message]="dialogData.message"
         [type]="dialogData.type"
         [buttonText]="dialogData.buttonText"
+        [showCancelButton]="dialogData.showCancelButton"
+        [cancelText]="dialogData.cancelText"
         (closed)="dialogData.isOpen = false"
+        (confirmed)="onDialogConfirm()"
       ></app-dialog>
     </div>
   `,
+  styles: [
+    `
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      .animate-slide-in {
+        animation: slideIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+    `,
+  ],
 })
 export class FileManagerComponent implements OnInit, OnDestroy {
   folders: Folder[] = [];
@@ -86,9 +137,15 @@ export class FileManagerComponent implements OnInit, OnDestroy {
   currentFolderId: number = 1;
   rootFolderId: number = 1;
   showFolderModal = false;
+  modalTitle = 'Créer un Nouveau Dossier';
+  modalPlaceholder = 'Entrez le nom du dossier';
+  modalSubmitText = 'Créer';
+  modalValue = '';
+  pendingRename: { type: 'folder' | 'file'; item: any } | null = null;
   isLoading = false;
   breadcrumbTrail: { id: number; name: string }[] = [{ id: 1, name: 'Root' }];
   viewMode: 'standard' | 'recent' | 'recycle-bin' = 'standard';
+  readonly MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10 GB
 
   dialogData = {
     isOpen: false,
@@ -96,7 +153,13 @@ export class FileManagerComponent implements OnInit, OnDestroy {
     message: '',
     type: 'error' as 'success' | 'error' | 'info' | 'warning',
     buttonText: 'OK',
+    showCancelButton: false,
+    cancelText: 'Annuler',
   };
+
+  uploadQueue: { fileName: string; progress: number }[] = [];
+
+  pendingDelete: { type: 'file' | 'folder'; id: number; name: string } | null = null;
 
   private subs = new Subscription();
 
@@ -282,21 +345,117 @@ export class FileManagerComponent implements OnInit, OnDestroy {
   }
 
   uploadFiles(fileList: FileList) {
-    Array.from(fileList).forEach((file) => {
+    const files = Array.from(fileList);
+
+    // Check if any file exceeds the 10GB limit
+    const overLimitFiles = files.filter((f) => f.size > this.MAX_FILE_SIZE);
+    if (overLimitFiles.length > 0) {
+      this.showErrorDialog(
+        'Fichier trop volumineux',
+        `Certains fichiers dépassent la limite autorisée de 10 Go : ${overLimitFiles
+          .map((f) => f.name)
+          .join(', ')}`
+      );
+      return;
+    }
+
+    files.forEach((file) => {
+      // Create a queue item
+      const queueItem = { fileName: file.name, progress: 0 };
+      this.uploadQueue.push(queueItem);
+      this.cdr.detectChanges();
+
       this.fileService.uploadFile(file, this.currentFolderId).subscribe({
-        next: () => this.loadFolder(this.currentFolderId),
+        next: (event: any) => {
+          if (event.type === HttpEventType.UploadProgress) {
+            const progress = Math.round((100 * event.loaded) / event.total);
+            queueItem.progress = progress;
+            this.cdr.detectChanges();
+          } else if (event.type === HttpEventType.Response) {
+            // Success! Remove from queue and refresh folder
+            this.uploadQueue = this.uploadQueue.filter((i) => i !== queueItem);
+            this.loadFolder(this.currentFolderId);
+            this.cdr.detectChanges();
+          }
+        },
         error: (err) => {
+          this.uploadQueue = this.uploadQueue.filter((i) => i !== queueItem);
+          console.error('Upload error:', err);
+
           if (err.error?.Error?.includes('quota') || err.error?.Error?.includes('Storage')) {
             this.showErrorDialog(
               'Quota de stockage dépassé',
               'Vous avez atteint votre limite de stockage. Veuillez supprimer des fichiers ou contacter un administrateur.'
             );
+          } else if (err.status === 413) {
+            this.showErrorDialog(
+              'Fichier trop volumineux',
+              'Le fichier est trop volumineux pour être traité par le serveur.'
+            );
           } else {
-            this.showErrorDialog('Erreur', 'Échec du téléchargement du fichier.');
+            this.showErrorDialog(
+              'Erreur',
+              'Échec du téléchargement du fichier: ' + (err.error?.Error || 'Erreur inconnue')
+            );
           }
+          this.cdr.detectChanges();
         },
       });
     });
+  }
+
+  onDeleteFolder(folder: any) {
+    this.pendingDelete = { type: 'folder', id: folder.id, name: folder.name };
+    this.showConfirmationDialog(
+      'Confirmer la suppression',
+      `Êtes-vous sûr de vouloir supprimer le dossier "${folder.name}" et tout son contenu ?`,
+      'Supprimer'
+    );
+  }
+
+  onDeleteFile(file: any) {
+    this.pendingDelete = { type: 'file', id: file.id, name: file.name };
+    this.showConfirmationDialog(
+      'Confirmer la suppression',
+      `Êtes-vous sûr de vouloir supprimer le fichier "${file.name}" ?`,
+      'Supprimer'
+    );
+  }
+
+  showConfirmationDialog(title: string, message: string, buttonText: string) {
+    this.dialogData = {
+      isOpen: true,
+      title,
+      message,
+      type: 'warning',
+      buttonText,
+      showCancelButton: true,
+      cancelText: 'Annuler',
+    };
+    this.cdr.detectChanges();
+  }
+
+  onDialogConfirm() {
+    if (this.pendingDelete) {
+      const { type, id } = this.pendingDelete;
+      const obs =
+        type === 'folder' ? this.fileService.deleteFolder(id) : this.fileService.deleteFile(id);
+
+      obs.subscribe({
+        next: () => {
+          this.loadFolder(this.currentFolderId);
+          this.pendingDelete = null;
+          this.dialogData.isOpen = false;
+        },
+        error: (err) => {
+          this.showErrorDialog(
+            'Erreur',
+            `Échec de la suppression du ${type === 'folder' ? 'dossier' : 'fichier'}.`
+          );
+          this.pendingDelete = null;
+        },
+      });
+    }
   }
 
   showErrorDialog(title: string, message: string) {
@@ -306,20 +465,42 @@ export class FileManagerComponent implements OnInit, OnDestroy {
       message,
       type: 'error',
       buttonText: 'OK',
+      showCancelButton: false,
+      cancelText: 'Annuler',
     };
     this.cdr.detectChanges();
   }
 
   createFolder() {
+    this.modalTitle = 'Créer un Nouveau Dossier';
+    this.modalPlaceholder = 'Entrez le nom du dossier';
+    this.modalSubmitText = 'Créer';
+    this.modalValue = '';
+    this.pendingRename = null;
     this.showFolderModal = true;
     this.cdr.detectChanges();
   }
 
   onFolderNameSubmit(name: string) {
-    this.fileService.createFolder({ name, parentFolderId: this.currentFolderId }).subscribe(() => {
-      this.showFolderModal = false;
-      this.loadFolder(this.currentFolderId);
-    });
+    if (this.pendingRename) {
+      const { type, item } = this.pendingRename;
+      if (type === 'folder') {
+        this.fileService.renameFolder(item.id, name).subscribe(() => {
+          this.showFolderModal = false;
+          this.loadFolder(this.currentFolderId);
+        });
+      } else {
+        // Add file rename service call if available, for now just folder
+        this.showFolderModal = false;
+      }
+    } else {
+      this.fileService
+        .createFolder({ name, parentFolderId: this.currentFolderId })
+        .subscribe(() => {
+          this.showFolderModal = false;
+          this.loadFolder(this.currentFolderId);
+        });
+    }
   }
 
   onFolderModalCancel() {
@@ -327,12 +508,13 @@ export class FileManagerComponent implements OnInit, OnDestroy {
   }
 
   onRenameFolder(e: any) {
-    this.fileService
-      .renameFolder(e.folder.id, e.newName)
-      .subscribe(() => this.loadFolder(this.currentFolderId));
-  }
-  onDeleteFolder(f: any) {
-    this.fileService.deleteFolder(f.id).subscribe(() => this.loadFolder(this.currentFolderId));
+    this.modalTitle = 'Renommer le Dossier';
+    this.modalPlaceholder = 'Entrez le nouveau nom';
+    this.modalSubmitText = 'Renommer';
+    this.modalValue = e.folder.name;
+    this.pendingRename = { type: 'folder', item: e.folder };
+    this.showFolderModal = true;
+    this.cdr.detectChanges();
   }
   onMoveFolder(e: any) {
     this.fileService
@@ -343,9 +525,6 @@ export class FileManagerComponent implements OnInit, OnDestroy {
     this.fileService
       .moveFile(e.file.id, e.targetFolderId)
       .subscribe(() => this.loadFolder(this.currentFolderId));
-  }
-  onDeleteFile(f: any) {
-    this.fileService.deleteFile(f.id).subscribe(() => this.loadFolder(this.currentFolderId));
   }
   onRestoreFolder(f: any) {
     this.fileService.restoreFolder(f.id).subscribe(() => this.loadRecycleBin());
