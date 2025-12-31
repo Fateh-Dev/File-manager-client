@@ -124,9 +124,14 @@ export class LoginComponent {
     this.errorMessage = '';
     this.isLoading = true;
     this.authService.login({ username: this.username, password: this.password }).subscribe({
-      next: () => {
+      next: (response) => {
         this.isLoading = false;
-        window.location.reload();
+        // Verify token was set and is valid
+        if (this.authService.isAuthenticated()) {
+          window.location.reload();
+        } else {
+          this.errorMessage = 'Échec de la connexion. Token invalide.';
+        }
       },
       error: (err) => {
         this.errorMessage = 'Échec de la connexion. Veuillez vérifier vos identifiants.';

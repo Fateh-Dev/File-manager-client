@@ -23,13 +23,45 @@ export class App implements OnInit {
     private navigationService: NavigationService,
     private router: Router
   ) {
-    this.isAuthenticated = !!this.authService.getToken();
+    // Check authentication status on initialization (including page refresh)
+    this.checkAuthentication();
   }
 
   ngOnInit() {
+    // Check authentication again in ngOnInit (handles page refresh)
+    this.checkAuthentication();
+    
+    // Set up periodic token validation (check every 30 seconds)
+    setInterval(() => {
+      this.checkAuthentication();
+    }, 30000);
+    
+    // Listen for storage events (handles token changes from other tabs)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'auth_token') {
+          this.checkAuthentication();
+        }
+      });
+    }
+    
     this.navigationService.showCreateFolder$.subscribe((show) => {
       this.showCreateFolder = show;
     });
+  }
+
+  checkAuthentication() {
+    // Check if token exists and is valid
+    if (this.authService.isAuthenticated()) {
+      this.isAuthenticated = true;
+    } else {
+      // Token is missing or expired, redirect to login
+      this.isAuthenticated = false;
+      // Clear any invalid token
+      if (this.authService.getToken()) {
+        this.authService.logout();
+      }
+    }
   }
 
   // Sidebar controls

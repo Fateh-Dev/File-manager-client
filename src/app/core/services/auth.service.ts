@@ -14,8 +14,11 @@ export class AuthService {
         // Check if running in browser
         if (typeof localStorage !== 'undefined') {
             const token = this.getToken();
-            if (token) {
+            if (token && this.isTokenValid(token)) {
                 this.currentUserSubject.next({ token });
+            } else if (token) {
+                // Token exists but is expired, remove it
+                this.logout();
             }
         }
     }
@@ -38,14 +41,66 @@ export class AuthService {
     logout() {
         localStorage.removeItem(this.tokenKey);
         this.currentUserSubject.next(null);
+        // Reload page to show login screen
+        if (typeof window !== 'undefined') {
+            window.location.reload();
+        }
     }
 
     getToken(): string | null {
+        if (typeof localStorage === 'undefined') {
+            return null;
+        }
         return localStorage.getItem(this.tokenKey);
     }
 
     setToken(token: string) {
-        localStorage.setItem(this.tokenKey, token);
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(this.tokenKey, token);
+        }
+    }
+
+    isAuthenticated(): boolean {
+        const token = this.getToken();
+        if (!token) {
+            return false;
+        }
+        return this.isTokenValid(token);
+    }
+
+    isTokenValid(token: string): boolean {
+        try {
+            // Decode JWT token (base64url decode)
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                return false;
+            }
+
+            // Decode payload
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            
+            // Check expiration
+            if (payload.exp) {
+                const expirationDate = new Date(payload.exp * 1000);
+                const now = new Date();
+                
+                // Add 5 second buffer to account for clock skew
+                if (expirationDate.getTime() <= now.getTime() + 5000) {
+                    return false;
+                }
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Error validating token:', error);
+            return false;
+        }
+    }
+
+    checkAuthAndRedirect(): void {
+        if (!this.isAuthenticated()) {
+            this.logout();
+        }
     }
 
     get currentUser$() {
