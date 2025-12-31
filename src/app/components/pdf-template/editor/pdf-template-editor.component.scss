@@ -161,9 +161,11 @@
       flex: 1;
       padding: 2rem;
       display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
       overflow: auto;
+      position: relative;
 
       .upload-placeholder {
         width: 100%;
@@ -184,11 +186,74 @@
         }
       }
 
+      .zoom-controls {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: white;
+        padding: 0.5rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+
+        .zoom-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 32px;
+          height: 32px;
+          border: 1px solid #cbd5e1;
+          background: #f8fafc;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: all 0.2s;
+          color: #475569;
+
+          &:hover:not(:disabled) {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+          }
+
+          &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+
+          svg {
+            width: 16px;
+            height: 16px;
+          }
+        }
+
+        .zoom-level {
+          min-width: 50px;
+          text-align: center;
+          font-size: 0.875rem;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        .zoom-hint {
+          font-size: 0.75rem;
+          color: #64748b;
+          margin-left: 0.5rem;
+          padding-left: 0.5rem;
+          border-left: 1px solid #e2e8f0;
+        }
+      }
+
       .image-wrapper {
         position: relative;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         cursor: crosshair;
         background: white;
+        // Remove transition for instant, smooth zoom without jumps
+        // transition: transform 0.1s ease-out;
+        margin: auto; // Center the image when zoomed
 
         img {
           display: block;
