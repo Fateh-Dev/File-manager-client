@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { PdfTemplateContainerComponent } from './components/pdf-template/container/pdf-template-container.component';
 import { LoginComponent } from './components/login/login.component';
-import { SharedViewComponent } from './components/shared-view/shared-view.component';
+import { SharedWithMeComponent } from './components/shared-with-me/shared-with-me.component';
 import { FileManagerComponent } from './components/file-manager/file-manager.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
@@ -9,7 +9,7 @@ import { AdminGuard } from './core/guards/admin.guard';
 export const routes: Routes = [
   { path: '', component: FileManagerComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },
-  { path: 'share/:token', component: SharedViewComponent },
+  { path: 'shared-with-me', component: SharedWithMeComponent, canActivate: [AuthGuard] },
   { path: 'pdf-template', component: PdfTemplateContainerComponent },
   {
     path: 'admin',

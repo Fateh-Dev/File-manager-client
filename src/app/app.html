@@ -9,6 +9,7 @@
     (navigateRecent)="loadRecentFiles()"
     (navigateDownloads)="loadDownloads()"
     (navigateRecycleBin)="loadRecycleBin()"
+    (navigateSharedWithMe)="navigateToSharedWithMe()"
   >
   </app-sidebar>
 
@@ -18,23 +19,9 @@
       *ngIf="isAuthenticated"
       class="bg-white border-b border-gray-200 px-4 py-2.5 flex justify-between items-center shadow-sm z-30"
     >
-      <div class="flex items-center space-x-3">
-        <div class="flex items-center space-x-2">
-          <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-              ></path>
-            </svg>
-          </div>
-          <h1 class="text-lg font-bold text-gray-800">Gestionnaire de Fichiers</h1>
-        </div>
-
+      <div class="flex items-center">
         <!-- Search Input -->
-        <div class="relative ml-4">
+        <div class="relative">
           <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <svg
               class="h-4 w-4 text-gray-400"
@@ -52,8 +39,8 @@
           </div>
           <input
             type="text"
-            class="block w-64 pl-10 pr-3 py-1 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
-            placeholder="Rechercher des fichiers et dossiers..."
+            class="block w-64 pl-10 pr-3 py-1.5 border border-gray-200 rounded-xl leading-5 bg-gray-50 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200"
+            placeholder="Rechercher..."
             [value]="searchQuery"
             (input)="onSearch($event)"
             (keydown.enter)="onSearchEnter()"
@@ -79,40 +66,59 @@
           </div>
         </div>
       </div>
-      <div class="flex items-center space-x-2">
+
+      <div class="flex items-center space-x-4">
+        <!-- New Folder Button -->
         <button
           *ngIf="showCreateFolder"
-          class="flex items-center space-x-1.5 bg-blue-500 text-white px-3 py-1.5 rounded-md hover:bg-blue-600 transition-colors text-sm font-medium"
+          class="flex items-center space-x-1.5 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all text-sm font-bold shadow-lg shadow-blue-200"
           (click)="createFolder()"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
               stroke-linejoin="round"
-              stroke-width="2"
+              stroke-width="3"
               d="M12 4v16m8-8H4"
             ></path>
           </svg>
           <span>Nouveau Dossier</span>
         </button>
-        <button
-          class="flex items-center space-x-1.5 text-gray-600 hover:text-gray-900 px-3 py-1.5 rounded-md hover:bg-gray-100 transition-colors text-sm font-medium"
-          (click)="logout()"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            ></path>
-          </svg>
-          <span>Déconnexion</span>
-        </button>
+
+        <!-- User Profile & Logout -->
+        <div class="flex items-center pl-4 border-l border-gray-100 space-x-4">
+          <div class="flex items-center space-x-3">
+            <div class="text-right hidden sm:block">
+              <p class="text-xs font-bold text-gray-800">{{ username }}</p>
+              <p class="text-[10px] text-gray-400 font-medium">
+                {{ isAdmin ? 'Administrateur' : 'Utilisateur' }}
+              </p>
+            </div>
+            <div
+              class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-sm font-bold text-gray-600 border border-gray-200"
+            >
+              {{ username?.charAt(0)?.toUpperCase() }}
+            </div>
+          </div>
+
+          <button
+            class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            title="Déconnexion"
+            (click)="logout()"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              ></path>
+            </svg>
+          </button>
+        </div>
       </div>
     </header>
 
-    <!-- Content Area -->
     <main
       class="flex-1 overflow-hidden relative"
       [class.bg-white]="!isAuthenticated"

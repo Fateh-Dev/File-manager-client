@@ -26,23 +26,31 @@ export class ShareService {
 
   constructor(private http: HttpClient) {}
 
-  createShareLink(dto: CreateShareLinkDto): Observable<any> {
-    return this.http.post(`${this.apiUrl}/links`, dto);
+  shareItem(
+    targetUserId: number,
+    fileId?: number,
+    folderId?: number,
+    accessLevel: number = 0
+  ): Observable<any> {
+    return this.http.post(`${this.apiUrl}/share`, { targetUserId, fileId, folderId, accessLevel });
   }
 
-  getSharedInfo(token: string): Observable<SharedLinkInfo> {
-    return this.http.get<SharedLinkInfo>(`${this.apiUrl}/info/${token}`);
+  getSharedWithMe(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/shared-with-me`);
   }
 
-  getDownloadUrl(token: string): string {
-    return `${this.apiUrl}/download/${token}`;
+  getUsers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/users`);
   }
 
-  getMyLinks(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/my-links`);
+  getItemPermissions(fileId?: number, folderId?: number): Observable<any[]> {
+    let params = '';
+    if (fileId) params = `?fileId=${fileId}`;
+    else if (folderId) params = `?folderId=${folderId}`;
+    return this.http.get<any[]>(`${this.apiUrl}/item-permissions${params}`);
   }
 
-  revokeLink(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/links/${id}`);
+  revokeShare(permissionId: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/revoke/${permissionId}`);
   }
 }

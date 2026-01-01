@@ -92,6 +92,22 @@ export class AuthService {
     return role === 'Admin';
   }
 
+  getUsername(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    const payload = this.getPayload(token);
+    if (!payload) return null;
+
+    return (
+      payload.unique_name ||
+      payload.name ||
+      payload.sub ||
+      payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] ||
+      null
+    );
+  }
+
   isTokenValid(token: string): boolean {
     try {
       const payload = this.getPayload(token);

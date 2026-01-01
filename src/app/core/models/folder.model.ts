@@ -1,7 +1,9 @@
 export interface Folder {
-    id: number;
-    name: string;
-    parentFolderId?: number;
-    subFolders?: Folder[];
-    files?: any[];
+  id: number;
+  name: string;
+  parentFolderId?: number;
+  subFolders?: Folder[];
+  files?: any[];
+  ownerName?: string;
+  accessLevel?: number;
 }

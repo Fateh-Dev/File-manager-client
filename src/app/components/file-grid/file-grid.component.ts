@@ -38,7 +38,7 @@ import { Folder } from '../../core/models/folder.model';
       </div>
 
       <!-- Breadcrumbs and Upload Button -->
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center justify-between mb-4" *ngIf="!isSharedView">
         <div class="flex items-center space-x-2">
           <button
             class="flex items-center space-x-1 px-2 py-1 rounded-md hover:bg-gray-100 transition-colors text-gray-600 hover:text-blue-600 text-sm font-medium"
@@ -200,6 +200,13 @@ import { Folder } from '../../core/models/folder.model';
                 {{ folder.name }}
               </h4>
 
+              <p
+                *ngIf="isSharedView && folder.ownerName"
+                class="text-[10px] text-blue-600 font-bold truncate mt-0.5"
+              >
+                Par: {{ folder.ownerName }}
+              </p>
+
               <p class="text-[10px] text-gray-500 truncate mt-0.5" title="Last Modified Date">
                 {{ getLastModifiedDate(folder) }}
               </p>
@@ -237,6 +244,7 @@ import { Folder } from '../../core/models/folder.model';
             >
               <ng-container *ngIf="viewMode !== 'recycle-bin'">
                 <button
+                  *ngIf="!isSharedView || folder.accessLevel === 1"
                   class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                   (click)="onRenameFolder(folder)"
                 >
@@ -251,6 +259,7 @@ import { Folder } from '../../core/models/folder.model';
                   <span>Renommer</span>
                 </button>
                 <button
+                  *ngIf="!isSharedView || folder.accessLevel === 1"
                   class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                   (click)="onMoveFolder(folder)"
                 >
@@ -265,6 +274,7 @@ import { Folder } from '../../core/models/folder.model';
                   <span>Déplacer</span>
                 </button>
                 <button
+                  *ngIf="!isSharedView"
                   class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                   (click)="
                     share.emit({ id: folder.id, type: 'folder', name: folder.name }); closeMenu()
@@ -282,6 +292,7 @@ import { Folder } from '../../core/models/folder.model';
                 </button>
                 <div class="border-t border-gray-200 my-1"></div>
                 <button
+                  *ngIf="!isSharedView || folder.accessLevel === 1"
                   class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
                   (click)="onDeleteFolder(folder)"
                 >
@@ -366,6 +377,12 @@ import { Folder } from '../../core/models/folder.model';
               class="text-xs font-medium text-gray-700 truncate w-full text-center group-hover:text-blue-600 transition-colors"
               >{{ file.name }}</span
             >
+            <p
+              *ngIf="isSharedView && file.ownerName"
+              class="text-[10px] text-blue-600 font-bold mt-0.5 truncate w-full text-center"
+            >
+              Par: {{ file.ownerName }}
+            </p>
             <span class="text-xs text-gray-400 mt-0.5">{{ formatFileSize(file.size) }}</span>
 
             <!-- File actions menu button -->
@@ -416,6 +433,7 @@ import { Folder } from '../../core/models/folder.model';
                   <span>Télécharger</span>
                 </button>
                 <button
+                  *ngIf="!isSharedView"
                   class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
                   (click)="
                     share.emit({ id: file.id, type: 'file', name: file.name }); closeFileMenu()
@@ -433,6 +451,7 @@ import { Folder } from '../../core/models/folder.model';
                 </button>
                 <div class="border-t border-gray-200 my-1"></div>
                 <button
+                  *ngIf="!isSharedView || file.accessLevel === 1"
                   class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
                   (click)="onDeleteFile(file)"
                 >
@@ -493,6 +512,7 @@ export class FileGridComponent {
   @Input() breadcrumbTrail: { id: number; name: string }[] = [];
   @Input() isLoading = false;
   @Input() viewMode: 'standard' | 'recent' | 'recycle-bin' = 'standard';
+  @Input() isSharedView = false;
   @Output() openFolder = new EventEmitter<Folder>();
   @Output() previewFile = new EventEmitter<FileMetadata>();
   @Output() downloadFile = new EventEmitter<FileMetadata>();

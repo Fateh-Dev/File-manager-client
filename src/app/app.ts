@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, Router, RouterModule } from '@angular/router';
+import { RouterOutlet, Router, RouterModule, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
 import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { LoginComponent } from './components/login/login.component';
 import { AuthService } from './core/services/auth.service';
@@ -16,6 +17,7 @@ import { NavigationService } from './core/services/navigation.service';
 export class App implements OnInit {
   isAuthenticated = false;
   isAdmin = false;
+  username: string | null = null;
   searchQuery: string = '';
   showCreateFolder = false;
 
@@ -33,6 +35,9 @@ export class App implements OnInit {
     this.authService.currentUser$.subscribe(() => {
       this.checkAuthentication();
     });
+
+    // Initial check
+    this.checkAuthentication();
 
     // Set up periodic token validation (check every 30 seconds)
     setInterval(() => {
@@ -61,18 +66,20 @@ export class App implements OnInit {
     if (this.authService.isAuthenticated()) {
       this.isAuthenticated = true;
       this.isAdmin = this.authService.isAdmin();
+      this.username = this.authService.getUsername();
     } else {
       // Token is missing or expired, redirect to login
       this.isAuthenticated = false;
       this.isAdmin = false;
+      this.username = null;
       // Clear any invalid token
       if (this.authService.getToken()) {
         this.authService.logout();
       }
 
-      // Redirect to login if not on a public route (like /share)
+      // Redirect to login if not on login page
       const currentUrl = this.router.url;
-      if (!currentUrl.startsWith('/share') && currentUrl !== '/login') {
+      if (currentUrl !== '/login') {
         this.router.navigate(['/login']);
       }
     }
@@ -91,6 +98,10 @@ export class App implements OnInit {
 
   navigateToAdmin() {
     this.router.navigate(['/admin']);
+  }
+
+  navigateToSharedWithMe() {
+    this.router.navigate(['/shared-with-me']);
   }
 
   loadRecentFiles() {

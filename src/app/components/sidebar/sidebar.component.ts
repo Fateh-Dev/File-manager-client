@@ -8,7 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
   imports: [CommonModule],
   template: `
     <div class="w-56 bg-white h-full border-r border-gray-200 flex flex-col shadow-sm">
-      <div class="p-4 py-2.5 border-b border-gray-200">
+      <div class="p-4 py-2.5  border-gray-200">
         <div class="flex items-center space-x-2">
           <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
             <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,6 +75,29 @@ import { AuthService } from '../../core/services/auth.service';
               </svg>
             </div>
             <span class="font-medium">Éditeur PDF</span>
+          </button>
+          <button
+            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center text-gray-700 hover:text-blue-600 transition-colors text-sm"
+            (click)="navigateSharedWithMe.emit()"
+          >
+            <div
+              class="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center mr-2 group-hover:bg-blue-500 transition-colors"
+            >
+              <svg
+                class="w-4 h-4 text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                ></path>
+              </svg>
+            </div>
+            <span class="font-medium">Partagés avec moi</span>
           </button>
           <!-- </div> -->
 
@@ -201,6 +224,7 @@ export class SidebarComponent implements OnInit {
   @Output() navigateDownloads = new EventEmitter<void>();
   @Output() navigateRecycleBin = new EventEmitter<void>();
   @Output() navigateAdmin = new EventEmitter<void>();
+  @Output() navigateSharedWithMe = new EventEmitter<void>();
 
   usedStorageGB = '0';
   storageLimitGB = '5';
