@@ -1,7 +1,7 @@
-<app-login *ngIf="!isAuthenticated"></app-login>
-
-<div *ngIf="isAuthenticated" class="flex h-screen bg-gray-50">
+<div class="flex h-screen bg-gray-50 overflow-hidden">
+  <!-- Sidebar - only show if authenticated -->
   <app-sidebar
+    *ngIf="isAuthenticated"
     [isAdmin]="isAdmin"
     (navigateHome)="navigateToHome()"
     (navigatePdfEditor)="navigateToPdfEditor()"
@@ -12,9 +12,11 @@
   >
   </app-sidebar>
 
-  <div class="flex-1 flex flex-col overflow-hidden">
+  <div class="flex-1 flex flex-col overflow-hidden relative">
+    <!-- Header - only show if authenticated -->
     <header
-      class="bg-white border-b border-gray-200 px-4 py-2.5 flex justify-between items-center shadow-sm"
+      *ngIf="isAuthenticated"
+      class="bg-white border-b border-gray-200 px-4 py-2.5 flex justify-between items-center shadow-sm z-30"
     >
       <div class="flex items-center space-x-3">
         <div class="flex items-center space-x-2">
@@ -110,8 +112,12 @@
       </div>
     </header>
 
-    <!-- Routed Content -->
-    <main class="flex-1 overflow-hidden relative">
+    <!-- Content Area -->
+    <main
+      class="flex-1 overflow-hidden relative"
+      [class.bg-white]="!isAuthenticated"
+      [class.bg-gray-50]="isAuthenticated"
+    >
       <router-outlet></router-outlet>
     </main>
   </div>

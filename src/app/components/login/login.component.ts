@@ -1,6 +1,7 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { DialogComponent } from '../dialog/dialog.component';
 
@@ -190,12 +191,13 @@ import { DialogComponent } from '../dialog/dialog.component';
     </div>
   `,
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   username = '';
   password = '';
   confirmPassword = '';
   isRegister = false;
   isLoading = false;
+  returnUrl = '/';
 
   dialogData = {
     isOpen: false,
@@ -205,7 +207,22 @@ export class LoginComponent {
     buttonText: 'Compris',
   };
 
-  constructor(private authService: AuthService, private cdr: ChangeDetectorRef) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit() {
+    // Get return url from route parameters or default to '/'
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+
+    // If already authenticated, redirect to home/returnUrl
+    if (this.authService.isAuthenticated()) {
+      this.router.navigate([this.returnUrl]);
+    }
+  }
 
   login() {
     this.isLoading = true;
@@ -213,7 +230,7 @@ export class LoginComponent {
       next: (response) => {
         this.isLoading = false;
         if (this.authService.isAuthenticated()) {
-          window.location.reload();
+          this.router.navigate([this.returnUrl]);
         } else {
           this.showDialog('Erreur', 'Échec de la connexion. Token invalide.', 'error');
         }

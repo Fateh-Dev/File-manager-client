@@ -4,6 +4,7 @@ import { HttpEventType } from '@angular/common/http';
 import { FileGridComponent } from '../file-grid/file-grid.component';
 import { PreviewModalComponent } from '../preview-modal/preview-modal.component';
 import { InputModalComponent } from '../input-modal/input-modal.component';
+import { SharingModalComponent } from '../sharing-modal/sharing-modal.component';
 import { DialogComponent } from '../dialog/dialog.component';
 import { FileSystemService } from '../../core/services/file-system.service';
 import { NavigationService } from '../../core/services/navigation.service';
@@ -19,6 +20,7 @@ import { Subscription } from 'rxjs';
     FileGridComponent,
     PreviewModalComponent,
     InputModalComponent,
+    SharingModalComponent,
     DialogComponent,
   ],
   template: `
@@ -75,6 +77,7 @@ import { Subscription } from 'rxjs';
           (restoreFile)="onRestoreFile($event)"
           (purgeFolder)="onPurgeFolder($event)"
           (purgeFile)="onPurgeFile($event)"
+          (share)="onShare($event)"
         >
         </app-file-grid>
       </main>
@@ -89,6 +92,15 @@ import { Subscription } from 'rxjs';
         (cancel)="onFolderModalCancel()"
       >
       </app-input-modal>
+
+      <app-sharing-modal
+        [isOpen]="showSharingModal"
+        [itemId]="sharingData.id"
+        [itemType]="sharingData.type"
+        [itemName]="sharingData.name"
+        (closed)="showSharingModal = false"
+      >
+      </app-sharing-modal>
 
       <app-preview-modal
         *ngIf="previewingFile"
@@ -160,6 +172,9 @@ export class FileManagerComponent implements OnInit, OnDestroy {
   uploadQueue: { fileName: string; progress: number }[] = [];
 
   pendingDelete: { type: 'file' | 'folder'; id: number; name: string } | null = null;
+
+  showSharingModal = false;
+  sharingData: { id?: number; type?: 'file' | 'folder'; name: string } = { name: '' };
 
   private subs = new Subscription();
 
@@ -537,6 +552,12 @@ export class FileManagerComponent implements OnInit, OnDestroy {
   }
   onPurgeFile(f: any) {
     this.fileService.purgeFile(f.id).subscribe(() => this.loadRecycleBin());
+  }
+
+  onShare(data: { id: number; type: 'file' | 'folder'; name: string }) {
+    this.sharingData = data;
+    this.showSharingModal = true;
+    this.cdr.detectChanges();
   }
 
   performSearch(query: string) {

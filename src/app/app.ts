@@ -9,7 +9,7 @@ import { NavigationService } from './core/services/navigation.service';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, LoginComponent, RouterOutlet, RouterModule],
+  imports: [CommonModule, SidebarComponent, RouterOutlet, RouterModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -68,6 +68,12 @@ export class App implements OnInit {
       // Clear any invalid token
       if (this.authService.getToken()) {
         this.authService.logout();
+      }
+
+      // Redirect to login if not on a public route (like /share)
+      const currentUrl = this.router.url;
+      if (!currentUrl.startsWith('/share') && currentUrl !== '/login') {
+        this.router.navigate(['/login']);
       }
     }
   }
