@@ -14,6 +14,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { FieldPosition } from '../../../core/models/field-position.model';
 import { TemplatePayload } from '../../../core/models/template-payload.model';
 import { FileSystemService } from '../../../core/services/file-system.service';
+import { PdfTemplateService } from '../../../core/services/pdf-template.service';
 
 type EditorMode = 'IDLE' | 'DRAWING' | 'MOVING' | 'RESIZING';
 
@@ -32,7 +33,7 @@ export class PdfTemplateEditorComponent implements OnInit {
   @ViewChild('templateImage') templateImage!: ElementRef<HTMLImageElement>;
   @ViewChild('canvasArea') canvasArea!: ElementRef<HTMLDivElement>;
 
-  @Output() templateSaved = new EventEmitter<TemplatePayload>();
+  @Output() templateSaved = new EventEmitter<any>();
 
   fields: FieldPosition[] = [];
   selectedFieldId: string | null = null;
@@ -60,7 +61,8 @@ export class PdfTemplateEditorComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     public cdr: ChangeDetectorRef,
-    private fileSystemService: FileSystemService
+    private fileSystemService: FileSystemService,
+    private pdfService: PdfTemplateService
   ) {
     this.fieldForm = this.fb.group({
       templateName: ['', Validators.required],
@@ -297,16 +299,54 @@ export class PdfTemplateEditorComponent implements OnInit {
   }
 
   onSave(): void {
-    if (this.fieldForm.invalid || this.fields.length === 0 || !this.imageGuid) return;
+    if (this.fieldForm.invalid || this.fields.length === 0 || !this.imageUrl) return;
 
-    const payload: TemplatePayload = {
-      templateName: this.fieldForm.value.templateName,
-      imageTemplate: this.imageGuid!,
-      fields: this.fields,
-    };
+    this.isUploading = true;
+    this.cdr.markForCheck();
 
-    this.templateSaved.emit(payload);
-    this.clearLocalStorage();
+    let fileToUpload: File | null = this.imageFile;
+
+    // If imageFile is lost (e.g. page refresh), convert base64 (imageUrl) back to File
+    if (!fileToUpload && this.imageUrl.startsWith('data:')) {
+      fileToUpload = this.dataURLtoFile(this.imageUrl, 'template.png');
+    }
+
+    if (!fileToUpload) {
+      alert("Image manquante. Veuillez recharger l'image.");
+      this.isUploading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    console.log(this.fields);
+    this.pdfService
+      .saveTemplate(this.fieldForm.value.templateName, fileToUpload, this.fields)
+      .subscribe({
+        next: (res) => {
+          this.isUploading = false;
+          alert('Modèle enregistré avec succès !');
+          this.clearLocalStorage();
+          this.templateSaved.emit(res);
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error saving template:', err);
+          this.isUploading = false;
+          alert("Erreur lors de l'enregistrement du modèle.");
+          this.cdr.markForCheck();
+        },
+      });
+  }
+
+  private dataURLtoFile(dataurl: string, filename: string): File {
+    const arr = dataurl.split(',');
+    const mime = arr[0].match(/:(.*?);/)![1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
   }
 
   private saveToLocalStorage(): void {

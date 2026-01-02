@@ -7,12 +7,15 @@ import { TemplatePayload } from '../models/template-payload.model';
   providedIn: 'root',
 })
 export class PdfTemplateService {
-  private apiUrl = 'http://localhost:5089/api/pdf-templates';
+  private apiUrl = 'http://localhost:5089/api/PdfTemplate';
 
   constructor(private http: HttpClient) {}
 
-  saveTemplate(payload: TemplatePayload): Observable<any> {
-    // Send as JSON payload since image is already uploaded and we only have the GUID
-    return this.http.post(this.apiUrl, payload);
+  saveTemplate(name: string, image: File, fields: any[]): Observable<any> {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('image', image);
+    formData.append('fieldsJson', JSON.stringify(fields));
+    return this.http.post(this.apiUrl, formData);
   }
 }

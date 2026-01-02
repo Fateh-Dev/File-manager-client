@@ -26,16 +26,7 @@ export class PdfTemplateContainerComponent implements OnInit {
     this.navigationService.setShowCreateFolder(false);
   }
 
-  onSave(payload: TemplatePayload): void {
-    console.log('Saving template:', payload);
-    this.pdfService.saveTemplate(payload).subscribe({
-      next: (res) => {
-        alert('Modèle enregistré avec succès !');
-      },
-      error: (err) => {
-        console.error('Error saving template:', err);
-        alert("Erreur lors de l'enregistrement du modèle.");
-      },
-    });
+  onSave(res: any): void {
+    console.log('Template saved successfully:', res);
   }
 }
