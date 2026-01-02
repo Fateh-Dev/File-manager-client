@@ -1,11 +1,14 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router, NavigationEnd, RouterModule } from '@angular/router';
+import { filter, Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { NavigationService } from '../../core/services/navigation.service';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   template: `
     <div class="w-56 bg-white h-full border-r border-gray-200 flex flex-col shadow-sm">
       <div class="p-4 py-2.5  border-gray-200">
@@ -26,18 +29,23 @@ import { AuthService } from '../../core/services/auth.service';
       <div class="flex-1 overflow-y-auto p-3">
         <nav class="space-y-1">
           <button
-            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center text-gray-700 hover:text-blue-600 transition-colors text-sm"
+            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center transition-all text-sm group"
+            [ngClass]="
+              isActive('/', 'home')
+                ? 'bg-blue-50 text-blue-600 font-bold'
+                : 'text-gray-700 hover:text-blue-600'
+            "
             (click)="navigateHome.emit()"
           >
             <div
-              class="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center mr-2 group-hover:bg-blue-500 transition-colors"
+              class="w-8 h-8 rounded-md flex items-center justify-center mr-2 transition-colors"
+              [ngClass]="
+                isActive('/', 'home')
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600'
+              "
             >
-              <svg
-                class="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -46,26 +54,27 @@ import { AuthService } from '../../core/services/auth.service';
                 ></path>
               </svg>
             </div>
-            <span class="font-medium">Accueil</span>
+            <span>Accueil</span>
           </button>
 
-          <!-- <div class="pt-3 mt-3 border-t border-gray-200">
-            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">
-              Conception
-            </p> -->
           <button
-            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center text-gray-700 hover:text-blue-600 transition-colors text-sm"
+            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center transition-all text-sm group"
+            [ngClass]="
+              isActive('/pdf-template')
+                ? 'bg-blue-50 text-blue-600 font-bold'
+                : 'text-gray-700 hover:text-blue-600'
+            "
             (click)="navigatePdfEditor.emit()"
           >
             <div
-              class="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center mr-2 group-hover:bg-blue-500 transition-colors"
+              class="w-8 h-8 rounded-md flex items-center justify-center mr-2 transition-colors"
+              [ngClass]="
+                isActive('/pdf-template')
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600'
+              "
             >
-              <svg
-                class="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -74,21 +83,27 @@ import { AuthService } from '../../core/services/auth.service';
                 ></path>
               </svg>
             </div>
-            <span class="font-medium">Éditeur PDF</span>
+            <span>Éditeur PDF</span>
           </button>
+
           <button
-            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center text-gray-700 hover:text-blue-600 transition-colors text-sm"
+            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center transition-all text-sm group"
+            [ngClass]="
+              isActive('/shared-with-me')
+                ? 'bg-blue-50 text-blue-600 font-bold'
+                : 'text-gray-700 hover:text-blue-600'
+            "
             (click)="navigateSharedWithMe.emit()"
           >
             <div
-              class="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center mr-2 group-hover:bg-blue-500 transition-colors"
+              class="w-8 h-8 rounded-md flex items-center justify-center mr-2 transition-colors"
+              [ngClass]="
+                isActive('/shared-with-me')
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600'
+              "
             >
-              <svg
-                class="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -97,25 +112,29 @@ import { AuthService } from '../../core/services/auth.service';
                 ></path>
               </svg>
             </div>
-            <span class="font-medium">Partagés avec moi</span>
+            <span>Partagés avec moi</span>
           </button>
-          <!-- </div> -->
 
           <!-- Admin Link -->
           <button
             *ngIf="isAdmin"
-            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center text-gray-700 hover:text-blue-600 transition-colors text-sm"
+            class="w-full p-2 hover:bg-gray-100 rounded-md cursor-pointer flex items-center transition-all text-sm group"
+            [ngClass]="
+              isActive('/admin')
+                ? 'bg-blue-50 text-blue-600 font-bold'
+                : 'text-gray-700 hover:text-blue-600'
+            "
             (click)="navigateAdmin.emit()"
           >
             <div
-              class="w-8 h-8 bg-gray-100 rounded-md flex items-center justify-center mr-2 group-hover:bg-blue-500 transition-colors"
+              class="w-8 h-8 rounded-md flex items-center justify-center mr-2 transition-colors"
+              [ngClass]="
+                isActive('/admin')
+                  ? 'bg-blue-100 text-blue-600'
+                  : 'bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600'
+              "
             >
-              <svg
-                class="w-4 h-4 text-gray-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -124,19 +143,30 @@ import { AuthService } from '../../core/services/auth.service';
                 ></path>
               </svg>
             </div>
-            <span class="font-medium">Administration</span>
+            <span>Administration</span>
           </button>
+
           <div class="pt-3 mt-3 border-t border-gray-200">
             <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2 mb-2">
               Accès Rapide
             </p>
             <div class="space-y-0.5">
               <div
-                class="p-2 rounded-md flex items-center text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors text-sm"
+                class="p-2 rounded-md flex items-center cursor-pointer transition-all text-sm group"
+                [ngClass]="
+                  isActive('/', 'recent')
+                    ? 'bg-blue-50 text-blue-600 font-bold'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                "
                 (click)="navigateRecent.emit()"
               >
                 <svg
-                  class="w-4 h-4 mr-2 text-gray-400"
+                  class="w-4 h-4 mr-2 transition-colors"
+                  [ngClass]="
+                    isActive('/', 'recent')
+                      ? 'text-blue-500'
+                      : 'text-gray-400 group-hover:text-blue-500'
+                  "
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -151,11 +181,21 @@ import { AuthService } from '../../core/services/auth.service';
                 <span class="text-xs">Fichiers Récents</span>
               </div>
               <div
-                class="p-2 rounded-md flex items-center text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors text-sm"
+                class="p-2 rounded-md flex items-center cursor-pointer transition-all text-sm group"
+                [ngClass]="
+                  isActive('/', 'downloads')
+                    ? 'bg-blue-50 text-blue-600 font-bold'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                "
                 (click)="navigateDownloads.emit()"
               >
                 <svg
-                  class="w-4 h-4 mr-2 text-gray-400"
+                  class="w-4 h-4 mr-2 transition-colors"
+                  [ngClass]="
+                    isActive('/', 'downloads')
+                      ? 'text-blue-500'
+                      : 'text-gray-400 group-hover:text-blue-500'
+                  "
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -170,11 +210,21 @@ import { AuthService } from '../../core/services/auth.service';
                 <span class="text-xs">Téléchargements</span>
               </div>
               <div
-                class="p-2 rounded-md flex items-center text-gray-600 hover:bg-gray-50 cursor-pointer transition-colors text-sm"
+                class="p-2 rounded-md flex items-center cursor-pointer transition-all text-sm group"
+                [ngClass]="
+                  isActive('/', 'recycle')
+                    ? 'bg-blue-50 text-blue-600 font-bold'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'
+                "
                 (click)="navigateRecycleBin.emit()"
               >
                 <svg
-                  class="w-4 h-4 mr-2 text-gray-400"
+                  class="w-4 h-4 mr-2 transition-colors"
+                  [ngClass]="
+                    isActive('/', 'recycle')
+                      ? 'text-blue-500'
+                      : 'text-gray-400 group-hover:text-blue-500'
+                  "
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -229,11 +279,62 @@ export class SidebarComponent implements OnInit {
   usedStorageGB = '0';
   storageLimitGB = '5';
   storagePercentage = 0;
+  currentRoute = '/';
+  currentAction = 'home';
+  private subs = new Subscription();
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private navigationService: NavigationService
+  ) {}
 
   ngOnInit() {
     this.loadStorageInfo();
+
+    // Track active route
+    this.currentRoute = this.router.url;
+    this.subs.add(
+      this.router.events
+        .pipe(filter((event) => event instanceof NavigationEnd))
+        .subscribe((event: any) => {
+          this.currentRoute = event.urlAfterRedirects || event.url;
+          // If we left home, clear the sub-action
+          if (!this.isHomeRoute(this.currentRoute)) {
+            this.currentAction = '';
+          } else if (this.currentAction === '') {
+            this.currentAction = 'home';
+          }
+        })
+    );
+
+    // Track sub-actions (Recent, Downloads, etc.)
+    this.subs.add(
+      this.navigationService.sidebarAction$.subscribe((action) => {
+        this.currentAction = action;
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subs.unsubscribe();
+  }
+
+  isActive(path: string, action?: string): boolean {
+    const isPathActive =
+      path === '/' ? this.isHomeRoute(this.currentRoute) : this.currentRoute.startsWith(path);
+
+    if (!isPathActive) return false;
+    if (action) return this.currentAction === action;
+
+    // For the main "Accueil" button, only return true if no sub-action is active
+    if (path === '/' && !action) return this.currentAction === 'home' || this.currentAction === '';
+
+    return true;
+  }
+
+  private isHomeRoute(url: string): boolean {
+    return url === '/' || url === '' || url.startsWith('/?');
   }
 
   loadStorageInfo() {
