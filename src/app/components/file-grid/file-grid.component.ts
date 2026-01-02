@@ -180,9 +180,14 @@ import { Folder } from '../../core/models/folder.model';
 
             <label
               *ngIf="viewMode === 'standard'"
-              class="btn btn-secondary bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+              class="btn btn-secondary bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
             >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                class="w-4 h-4 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -190,13 +195,42 @@ import { Folder } from '../../core/models/folder.model';
                   d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
                 ></path>
               </svg>
-              <span>Importer</span>
+              <span>Importer Fichiers</span>
               <input
                 type="file"
                 multiple
                 class="hidden"
                 (change)="onFileSelect($event)"
                 #fileInput
+              />
+            </label>
+
+            <label
+              *ngIf="viewMode === 'standard'"
+              class="btn btn-secondary bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
+            >
+              <svg
+                class="w-4 h-4 text-gray-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+                ></path>
+              </svg>
+              <span>Importer Dossier</span>
+              <input
+                type="file"
+                webkitdirectory
+                directory
+                multiple
+                class="hidden"
+                (change)="onFileSelect($event)"
+                #folderInput
               />
             </label>
           </div>
@@ -921,7 +955,7 @@ export class FileGridComponent {
   @Output() openFolder = new EventEmitter<Folder>();
   @Output() previewFile = new EventEmitter<FileMetadata>();
   @Output() downloadFile = new EventEmitter<FileMetadata>();
-  @Output() uploadFiles = new EventEmitter<FileList>();
+  @Output() uploadFiles = new EventEmitter<FileList | File[]>();
   @Output() createFolder = new EventEmitter<void>();
   @Output() navigateUp = new EventEmitter<void>();
   @Output() navigateToBreadcrumb = new EventEmitter<number>();
@@ -1304,22 +1338,75 @@ export class FileGridComponent {
     this.isDragging = false;
   }
 
-  onDrop(event: DragEvent) {
+  async onDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.isDragging = false;
 
-    // Check if dropping files or folder
-    if (event.dataTransfer?.files.length && !this.draggingFolder && !this.draggingFile) {
-      this.uploadFiles.emit(event.dataTransfer.files);
-    } else if (this.draggingFolder) {
-      // Drop folder on empty area = move to current folder (root) - wait, this is current folder view.
-      // If dragging a folder from somewhere else into current view?
-      // Currently we only drag from current view. So dropping on empty area in same view does nothing.
-      this.draggingFolder = null;
-    } else if (this.draggingFile) {
-      this.draggingFile = null;
+    if (this.draggingFolder || this.draggingFile) {
+      // Internal move, already handled by onFolderDrop/onBreadcrumbDrop
+      return;
     }
+
+    const items = event.dataTransfer?.items;
+    if (items && items.length > 0) {
+      const files: File[] = [];
+      const promises: Promise<void>[] = [];
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === 'file') {
+          const entry = item.webkitGetAsEntry();
+          if (entry) {
+            promises.push(this.traverseFileTree(entry, '', files));
+          }
+        }
+      }
+
+      await Promise.all(promises);
+      if (files.length > 0) {
+        this.uploadFiles.emit(files);
+      }
+    } else if (event.dataTransfer?.files.length) {
+      // Fallback for older browsers or if items not available
+      this.uploadFiles.emit(event.dataTransfer.files);
+    }
+  }
+
+  private traverseFileTree(entry: any, path: string, fileList: File[]): Promise<void> {
+    return new Promise((resolve) => {
+      if (entry.isFile) {
+        entry.file((file: File) => {
+          // Manually attach the relative path
+          const fullPath = path ? `${path}/${file.name}` : file.name;
+          Object.defineProperty(file, 'webkitRelativePath', {
+            value: fullPath,
+            writable: false,
+          });
+          fileList.push(file);
+          resolve();
+        });
+      } else if (entry.isDirectory) {
+        const dirReader = entry.createReader();
+        const newPath = path ? `${path}/${entry.name}` : entry.name;
+
+        const readEntries = () => {
+          dirReader.readEntries(async (entries: any[]) => {
+            if (entries.length > 0) {
+              const promises = entries.map((e) => this.traverseFileTree(e, newPath, fileList));
+              await Promise.all(promises);
+              // Continue reading if there are more entries (readEntries might only return a chunk)
+              readEntries();
+            } else {
+              resolve();
+            }
+          });
+        };
+        readEntries();
+      } else {
+        resolve();
+      }
+    });
   }
 
   onFileSelect(event: Event) {

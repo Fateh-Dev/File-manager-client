@@ -175,6 +175,7 @@ export class FileManagerComponent implements OnInit, OnDestroy {
   uploadQueue: { fileName: string; progress: number }[] = [];
 
   pendingDelete: { type: 'file' | 'folder'; id: number; name: string } | null = null;
+  pendingUploadFiles: File[] | null = null;
 
   showSharingModal = false;
   sharingData: { id?: number; type?: 'file' | 'folder'; name: string } = { name: '' };
@@ -372,8 +373,35 @@ export class FileManagerComponent implements OnInit, OnDestroy {
     });
   }
 
-  uploadFiles(fileList: FileList) {
+  async uploadFiles(fileList: FileList | File[]) {
     const files = Array.from(fileList);
+    const isFolder = files.length > 0 && !!(files[0] as any).webkitRelativePath;
+
+    if (isFolder) {
+      this.pendingDelete = null; // Clear any previous delete state
+      this.pendingUploadFiles = files; // Store as array to persist after input clear
+      const folderName = (files[0] as any).webkitRelativePath.split('/')[0];
+      const count = files.length;
+      this.showConfirmationDialog(
+        'Importer le Dossier',
+        `Voulez-vous importer le dossier "${folderName}" et tout son contenu (${count} fichiers) ?`,
+        'Importer',
+        'warning'
+      );
+    } else {
+      // Direct upload for individual files
+      this.pendingDelete = null;
+      this.pendingUploadFiles = files;
+      this.executeUpload();
+    }
+  }
+
+  async executeUpload() {
+    if (!this.pendingUploadFiles) return;
+
+    const files = this.pendingUploadFiles;
+    this.pendingUploadFiles = null; // Clear it immediately
+    this.dialogData.isOpen = false;
 
     // Check if any file exceeds the 10GB limit
     const overLimitFiles = files.filter((f) => f.size > this.MAX_FILE_SIZE);
@@ -387,75 +415,146 @@ export class FileManagerComponent implements OnInit, OnDestroy {
       return;
     }
 
-    files.forEach((file) => {
-      // Create a queue item
-      const queueItem = { fileName: file.name, progress: 0 };
-      this.uploadQueue.push(queueItem);
-      this.cdr.detectChanges();
+    // Map to cache folder IDs by their path to avoid redundant creations
+    const folderCache = new Map<string, number>();
+    // Root of the current upload is the currentFolderId
+    folderCache.set('', this.currentFolderId);
 
-      this.fileService.uploadFile(file, this.currentFolderId).subscribe({
-        next: (event: any) => {
-          if (event.type === HttpEventType.UploadProgress) {
-            const progress = Math.round((100 * event.loaded) / event.total);
-            queueItem.progress = progress;
-            this.cdr.detectChanges();
-          } else if (event.type === HttpEventType.Response) {
-            // Success! Remove from queue and refresh folder
-            this.uploadQueue = this.uploadQueue.filter((i) => i !== queueItem);
-            this.loadFolder(this.currentFolderId);
-            this.cdr.detectChanges();
-          }
-        },
-        error: (err) => {
-          this.uploadQueue = this.uploadQueue.filter((i) => i !== queueItem);
-          console.error('Upload error:', err);
+    console.log(`Starting upload of ${files.length} files/folders`);
 
-          if (err.error?.Error?.includes('quota') || err.error?.Error?.includes('Storage')) {
-            this.showErrorDialog(
-              'Quota de stockage dépassé',
-              'Vous avez atteint votre limite de stockage. Veuillez supprimer des fichiers ou contacter un administrateur.'
-            );
-          } else if (err.status === 413) {
-            this.showErrorDialog(
-              'Fichier trop volumineux',
-              'Le fichier est trop volumineux pour être traité par le serveur.'
-            );
-          } else {
-            this.showErrorDialog(
-              'Erreur',
-              'Échec du téléchargement du fichier: ' + (err.error?.Error || 'Erreur inconnue')
-            );
+    for (const file of files) {
+      try {
+        // Skip temporary Office files
+        if (file.name.startsWith('~$')) {
+          console.log(`Skipping temporary file: ${file.name}`);
+          continue;
+        }
+
+        let targetFolderId = this.currentFolderId;
+        const relativePath = (file as any).webkitRelativePath;
+
+        if (relativePath) {
+          // Folder upload: "folder/subfolder/file.txt"
+          const pathParts = relativePath.split('/');
+          pathParts.pop(); // Remove file name
+
+          let currentPath = '';
+          let parentId = this.currentFolderId;
+
+          for (const part of pathParts) {
+            currentPath = currentPath ? `${currentPath}/${part}` : part;
+
+            if (folderCache.has(currentPath)) {
+              parentId = folderCache.get(currentPath)!;
+            } else {
+              // Create folder synchronously to get its ID before continuing
+              const newFolder = await this.fileService
+                .createFolder({ name: part, parentFolderId: parentId })
+                .toPromise();
+
+              if (newFolder && (newFolder.id !== undefined || newFolder.Id !== undefined)) {
+                parentId = newFolder.id || newFolder.Id;
+                folderCache.set(currentPath, parentId);
+                // Refresh if we just created a top-level folder of this upload
+                if (currentPath === pathParts[0]) {
+                  this.loadFolder(this.currentFolderId);
+                }
+              } else {
+                throw new Error(`Failed to get ID for newly created folder: ${part}`);
+              }
+            }
           }
-          this.cdr.detectChanges();
-        },
-      });
-    });
+          targetFolderId = parentId;
+        }
+
+        // Now upload the file to the determined targetFolderId
+        const queueItem = { fileName: file.name, progress: 0 };
+        this.uploadQueue.push(queueItem);
+        this.cdr.detectChanges();
+
+        await new Promise<void>((resolve, reject) => {
+          this.fileService.uploadFile(file, targetFolderId).subscribe({
+            next: (event: any) => {
+              if (event.type === HttpEventType.UploadProgress) {
+                const progress = Math.round((100 * event.loaded) / event.total);
+                queueItem.progress = progress;
+                this.cdr.detectChanges();
+              } else if (event.type === HttpEventType.Response) {
+                this.uploadQueue = this.uploadQueue.filter((i) => i !== queueItem);
+                this.cdr.detectChanges();
+                resolve();
+              }
+            },
+            error: (err) => {
+              this.uploadQueue = this.uploadQueue.filter((i) => i !== queueItem);
+              this.handleUploadError(err);
+              this.cdr.detectChanges();
+              reject(err);
+            },
+          });
+        });
+      } catch (error) {
+        console.error('Error during upload sequence:', error);
+      }
+    }
+
+    // Refresh folder view after all uploads (or as they finish)
+    this.loadFolder(this.currentFolderId);
+  }
+
+  private handleUploadError(err: any) {
+    console.error('Upload error:', err);
+    if (err.error?.Error?.includes('quota') || err.error?.Error?.includes('Storage')) {
+      this.showErrorDialog(
+        'Quota de stockage dépassé',
+        'Vous avez atteint votre limite de stockage. Veuillez supprimer des fichiers ou contacter un administrateur.'
+      );
+    } else if (err.status === 413) {
+      this.showErrorDialog(
+        'Fichier trop volumineux',
+        'Le fichier est trop volumineux pour être traité par le serveur.'
+      );
+    } else {
+      this.showErrorDialog(
+        'Erreur',
+        'Échec du téléchargement du fichier: ' + (err.error?.Error || 'Erreur inconnue')
+      );
+    }
   }
 
   onDeleteFolder(folder: any) {
+    this.pendingUploadFiles = null; // Clear any previous upload state
     this.pendingDelete = { type: 'folder', id: folder.id, name: folder.name };
     this.showConfirmationDialog(
       'Confirmer la suppression',
       `Êtes-vous sûr de vouloir supprimer le dossier "${folder.name}" et tout son contenu ?`,
-      'Supprimer'
+      'Supprimer',
+      'error'
     );
   }
 
   onDeleteFile(file: any) {
+    this.pendingUploadFiles = null; // Clear any previous upload state
     this.pendingDelete = { type: 'file', id: file.id, name: file.name };
     this.showConfirmationDialog(
       'Confirmer la suppression',
       `Êtes-vous sûr de vouloir supprimer le fichier "${file.name}" ?`,
-      'Supprimer'
+      'Supprimer',
+      'error'
     );
   }
 
-  showConfirmationDialog(title: string, message: string, buttonText: string) {
+  showConfirmationDialog(
+    title: string,
+    message: string,
+    buttonText: string,
+    type: 'success' | 'error' | 'info' | 'warning' = 'error'
+  ) {
     this.dialogData = {
       isOpen: true,
       title,
       message,
-      type: 'error',
+      type,
       buttonText,
       showCancelButton: true,
       cancelText: 'Annuler',
@@ -483,6 +582,8 @@ export class FileManagerComponent implements OnInit, OnDestroy {
           this.pendingDelete = null;
         },
       });
+    } else if (this.pendingUploadFiles) {
+      this.executeUpload();
     }
   }
 
