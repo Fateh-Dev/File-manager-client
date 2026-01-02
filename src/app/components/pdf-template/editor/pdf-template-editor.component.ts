@@ -391,6 +391,9 @@ export class PdfTemplateEditorComponent implements OnInit {
   }
 
   getSelectedField(): FieldPosition | null {
+    if (this.mode === 'DRAWING' && this.currentField) {
+      return this.currentField;
+    }
     return this.fields.find((f) => f.id === this.selectedFieldId) || null;
   }
 
