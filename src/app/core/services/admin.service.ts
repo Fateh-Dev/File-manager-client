@@ -53,4 +53,16 @@ export class AdminService {
       }
     );
   }
+
+  resetUserPassword(id: number, newPassword: string): Observable<any> {
+    return this.http.put(
+      `${this.apiUrl}/users/${id}/reset-password`,
+      { newPassword },
+      {
+        headers: {
+          Authorization: `Bearer ${this.authService.getToken()}`,
+        },
+      }
+    );
+  }
 }

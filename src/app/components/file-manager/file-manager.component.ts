@@ -155,7 +155,7 @@ export class FileManagerComponent implements OnInit, OnDestroy {
   modalValue = '';
   pendingRename: { type: 'folder' | 'file'; item: any } | null = null;
   isLoading = false;
-  breadcrumbTrail: { id: number; name: string }[] = [{ id: 1, name: 'Root' }];
+  breadcrumbTrail: { id: number; name: string }[] = [{ id: 1, name: 'Accueil' }];
   viewMode: 'standard' | 'recent' | 'recycle-bin' = 'standard';
   readonly MAX_FILE_SIZE = 10 * 1024 * 1024 * 1024; // 10 GB
 
@@ -216,7 +216,7 @@ export class FileManagerComponent implements OnInit, OnDestroy {
         const id = rootFolder.id || 1;
         this.rootFolderId = id;
         this.currentFolderId = id;
-        this.breadcrumbTrail = [{ id, name: rootFolder.name || 'Root' }];
+        this.breadcrumbTrail = [{ id, name: rootFolder.name || 'Accueil' }];
         this.loadFolder(id);
       },
       error: () => this.loadFolder(1),
@@ -237,7 +237,10 @@ export class FileManagerComponent implements OnInit, OnDestroy {
     this.fileService.getFolderContents(folderId).subscribe({
       next: (res) => {
         if (res) {
-          this.currentFolder = { id: res.id || folderId, name: res.name || folderName || 'Root' };
+          this.currentFolder = {
+            id: res.id || folderId,
+            name: res.name || folderName || 'Accueil',
+          };
           let subFoldersData = res.subFolders || res.folders || res.children;
           let filesData = res.files;
 
@@ -275,10 +278,10 @@ export class FileManagerComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.folders = res.folders || [];
         this.files = res.files || [];
-        this.currentFolder = { id: -1, name: 'Recycle Bin' };
+        this.currentFolder = { id: -1, name: 'Corbeille' };
         this.breadcrumbTrail = [
-          { id: this.rootFolderId, name: 'Root' },
-          { id: -1, name: 'Recycle Bin' },
+          { id: this.rootFolderId, name: 'Accueil' },
+          { id: -1, name: 'Corbeille' },
         ];
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -293,10 +296,10 @@ export class FileManagerComponent implements OnInit, OnDestroy {
     this.fileService.getRecentFiles().subscribe({
       next: (res) => {
         this.files = res.files || [];
-        this.currentFolder = { id: -2, name: 'Recent Files' };
+        this.currentFolder = { id: -2, name: 'Fichiers Récents' };
         this.breadcrumbTrail = [
-          { id: this.rootFolderId, name: 'Root' },
-          { id: -2, name: 'Recent Files' },
+          { id: this.rootFolderId, name: 'Accueil' },
+          { id: -2, name: 'Fichiers Récents' },
         ];
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -309,12 +312,12 @@ export class FileManagerComponent implements OnInit, OnDestroy {
     this.fileService.getDownloads().subscribe({
       next: (res) => {
         this.currentFolderId = res.id;
-        this.currentFolder = { id: res.id, name: 'Downloads' };
+        this.currentFolder = { id: res.id, name: 'Téléchargements' };
         this.folders = res.subFolders || [];
         this.files = res.files || [];
         this.breadcrumbTrail = [
-          { id: this.rootFolderId, name: 'Root' },
-          { id: res.id, name: 'Downloads' },
+          { id: this.rootFolderId, name: 'Accueil' },
+          { id: res.id, name: 'Téléchargements' },
         ];
         this.isLoading = false;
         this.cdr.detectChanges();
@@ -329,7 +332,7 @@ export class FileManagerComponent implements OnInit, OnDestroy {
 
   navigateHome() {
     this.loadFolder(this.rootFolderId);
-    this.breadcrumbTrail = [{ id: this.rootFolderId, name: 'Root' }];
+    this.breadcrumbTrail = [{ id: this.rootFolderId, name: 'Accueil' }];
   }
 
   navigateUp() {
@@ -442,7 +445,7 @@ export class FileManagerComponent implements OnInit, OnDestroy {
       isOpen: true,
       title,
       message,
-      type: 'warning',
+      type: 'error',
       buttonText,
       showCancelButton: true,
       cancelText: 'Annuler',

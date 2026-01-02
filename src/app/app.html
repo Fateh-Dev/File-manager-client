@@ -69,11 +69,7 @@
 
       <div class="flex items-center space-x-4">
         <!-- New Folder Button -->
-        <button
-          *ngIf="showCreateFolder"
-          class="flex items-center space-x-1.5 bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition-all text-sm font-bold shadow-lg shadow-blue-200"
-          (click)="createFolder()"
-        >
+        <button *ngIf="showCreateFolder" class="btn btn-primary" (click)="createFolder()">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
@@ -87,7 +83,11 @@
 
         <!-- User Profile & Logout -->
         <div class="flex items-center pl-4 border-l border-gray-100 space-x-4">
-          <div class="flex items-center space-x-3">
+          <div
+            class="flex items-center space-x-3 cursor-pointer hover:opacity-80 transition-opacity"
+            (click)="navigateToProfile()"
+            title="Mon profil"
+          >
             <div class="text-right hidden sm:block">
               <p class="text-xs font-bold text-gray-800">{{ username }}</p>
               <p class="text-[10px] text-gray-400 font-medium">

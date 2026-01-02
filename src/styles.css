@@ -74,3 +74,93 @@ html, body {
 .animate-slide-in {
     animation: slideIn 0.3s ease-out;
 }
+
+/* Global Button Styles - Flat & Coherent */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8125rem; /* 13px */
+    transition: all 0.2s;
+    cursor: pointer;
+    border: 1px solid transparent; /* Default border */
+    outline: none;
+    box-shadow: none !important;     /* No shadows */
+    background-image: none !important; /* No gradients */
+    font-family: 'Inter', sans-serif;
+    gap: 0.5rem; /* Space between icon and text */
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Primary Action (Blue) */
+.btn-primary {
+    background-color: #3b82f6; 
+    color: white;
+    border: none;
+}
+.btn-primary:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+
+/* Secondary Action (Gray/Light) */
+.btn-secondary {
+    background-color: #f1f5f9;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+}
+.btn-secondary:hover:not(:disabled) {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+}
+
+/* Danger Action (Red) */
+.btn-danger {
+    background-color: #ef4444; 
+    color: white;
+    border: none;
+}
+.btn-danger:hover:not(:disabled) {
+    background-color: #dc2626;
+}
+
+/* Success Action (Green) */
+.btn-success {
+    background-color: #10b981;
+    color: white;
+    border: none;
+}
+.btn-success:hover:not(:disabled) {
+    background-color: #059669;
+}
+
+/* Warning Action (Yellow/Orange) */
+.btn-warning {
+    background-color: #f59e0b;
+    color: white;
+    border: none;
+}
+.btn-warning:hover:not(:disabled) {
+    background-color: #d97706;
+}
+
+/* Icon Button (Square, small) */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 4px;
+    background-color: #f8fafc;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+}
+.btn-icon:hover:not(:disabled) {
+    background-color: #e2e8f0;
+    border-color: #94a3b8;
+}

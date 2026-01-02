@@ -3,12 +3,14 @@ import { PdfTemplateContainerComponent } from './components/pdf-template/contain
 import { LoginComponent } from './components/login/login.component';
 import { SharedWithMeComponent } from './components/shared-with-me/shared-with-me.component';
 import { FileManagerComponent } from './components/file-manager/file-manager.component';
+import { ProfileComponent } from './components/profile/profile.component';
 import { AuthGuard } from './core/guards/auth.guard';
 import { AdminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', component: FileManagerComponent, canActivate: [AuthGuard] },
   { path: 'login', component: LoginComponent },
+  { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'shared-with-me', component: SharedWithMeComponent, canActivate: [AuthGuard] },
   { path: 'pdf-template', component: PdfTemplateContainerComponent },
   {

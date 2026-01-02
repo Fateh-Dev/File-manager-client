@@ -207,25 +207,17 @@ import { ShareService } from '../../core/services/share.service';
                 <div class="grid grid-cols-2 gap-2">
                   <button
                     (click)="accessLevel = 0"
-                    class="px-4 py-2 text-[10px] font-bold rounded-lg border transition-all"
-                    [class.bg-blue-600]="accessLevel === 0"
-                    [class.text-white]="accessLevel === 0"
-                    [class.border-blue-600]="accessLevel === 0"
-                    [class.bg-white]="accessLevel !== 0"
-                    [class.text-gray-600]="accessLevel !== 0"
-                    [class.border-gray-200]="accessLevel !== 0"
+                    class="btn w-full"
+                    [class.btn-primary]="accessLevel === 0"
+                    [class.btn-secondary]="accessLevel !== 0"
                   >
                     Lecture uniquement
                   </button>
                   <button
                     (click)="accessLevel = 1"
-                    class="px-4 py-2 text-[10px] font-bold rounded-lg border transition-all"
-                    [class.bg-blue-600]="accessLevel === 1"
-                    [class.text-white]="accessLevel === 1"
-                    [class.border-blue-600]="accessLevel === 1"
-                    [class.bg-white]="accessLevel !== 1"
-                    [class.text-gray-600]="accessLevel !== 1"
-                    [class.border-gray-200]="accessLevel !== 1"
+                    class="btn w-full"
+                    [class.btn-primary]="accessLevel === 1"
+                    [class.btn-secondary]="accessLevel !== 1"
                   >
                     Lecture & Modification
                   </button>
@@ -250,30 +242,19 @@ import { ShareService } from '../../core/services/share.service';
             </div>
             <h3 class="text-xl font-bold text-gray-800">Partagé !</h3>
             <p class="text-gray-600">{{ successMessage }}</p>
-            <button
-              (click)="onClose()"
-              class="mt-6 px-8 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-black transition-all"
-            >
-              Terminé
-            </button>
+            <button (click)="onClose()" class="btn btn-primary mt-6 px-8">Terminé</button>
           </div>
         </div>
 
         <!-- Footer -->
-        <div
-          *ngIf="!successMessage"
-          class="p-6 bg-gray-50 border-t border-gray-100 flex items-center justify-between"
-        >
-          <button
-            (click)="onClose()"
-            class="text-sm font-bold text-gray-500 hover:text-gray-700 transition-colors"
-          >
+        <div *ngIf="!successMessage" class="flex space-x-3 p-6 bg-gray-50 border-t border-gray-100">
+          <button (click)="onClose()" class="btn btn-secondary w-full justify-center">
             Annuler
           </button>
           <button
             (click)="share()"
             [disabled]="!selectedUserId || isSharing"
-            class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-200 disabled:opacity-50 disabled:shadow-none flex items-center space-x-2"
+            class="btn btn-primary w-full justify-center"
           >
             <span
               *ngIf="isSharing"

@@ -47,7 +47,9 @@ import { FileSystemService } from '../../core/services/file-system.service';
         (click)="$event.stopPropagation()"
       >
         <!-- Header -->
-        <div class="flex justify-between items-center p-4 border-b border-gray-200 bg-gray-50">
+        <div
+          class="flex justify-between items-center p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-2xl"
+        >
           <div class="flex items-center space-x-3 flex-1 min-w-0">
             <div
               class="w-10 h-10 bg-blue-500 rounded-md flex items-center justify-center flex-shrink-0"
@@ -363,20 +365,19 @@ import { FileSystemService } from '../../core/services/file-system.service';
               <p class="text-gray-600 text-sm mb-4">
                 Ce type de fichier ne peut pas être prévisualisé dans le navigateur.
               </p>
-              <button
-                class="inline-flex items-center space-x-1.5 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition-colors text-sm font-semibold"
-                (click)="download.emit(file)"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-                  ></path>
-                </svg>
-                <span>Télécharger le Fichier</span>
-              </button>
+              <div class="flex justify-center mt-4">
+                <button class="btn btn-primary" (click)="download.emit(file)">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    ></path>
+                  </svg>
+                  <span>Télécharger</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>

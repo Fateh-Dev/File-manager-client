@@ -13,7 +13,7 @@
       </div>
 
       <div class="file-upload">
-        <label class="btn-upload">
+        <label class="btn btn-secondary">
           <input
             type="file"
             (change)="onImageUpload($event)"
@@ -25,7 +25,7 @@
       </div>
 
       <button
-        class="btn-save"
+        class="btn btn-primary"
         [disabled]="fieldForm.invalid || fields.length === 0"
         (click)="onSave()"
       >
@@ -75,7 +75,7 @@
       <!-- Zoom Controls -->
       <div class="zoom-controls" *ngIf="imageUrl">
         <button
-          class="zoom-btn"
+          class="btn btn-icon"
           (click)="zoomOut($event)"
           [disabled]="zoomLevel <= minZoom"
           title="Zoom Out"
@@ -91,7 +91,7 @@
         </button>
         <span class="zoom-level">{{ getZoomPercent() }}%</span>
         <button
-          class="zoom-btn"
+          class="btn btn-icon"
           (click)="zoomIn($event)"
           [disabled]="zoomLevel >= maxZoom"
           title="Zoom In"
@@ -105,7 +105,7 @@
             ></path>
           </svg>
         </button>
-        <button class="zoom-btn" (click)="resetZoom()" title="Reset Zoom (100%)">
+        <button class="btn btn-icon" (click)="resetZoom()" title="Reset Zoom (100%)">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
@@ -116,7 +116,7 @@
           </svg>
         </button>
         <button
-          class="zoom-btn"
+          class="btn btn-icon"
           (click)="toggleFullscreen()"
           [title]="isFullscreen ? 'Quitter le plein écran' : 'Plein écran'"
         >

@@ -104,6 +104,10 @@ export class App implements OnInit {
     this.router.navigate(['/shared-with-me']);
   }
 
+  navigateToProfile() {
+    this.router.navigate(['/profile']);
+  }
+
   loadRecentFiles() {
     this.router.navigate(['/']).then(() => {
       this.navigationService.emitSidebarAction('recent');

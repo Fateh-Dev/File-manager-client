@@ -97,10 +97,7 @@ import { Folder } from '../../core/models/folder.model';
             </ng-container>
           </div>
         </div>
-        <label
-          *ngIf="viewMode === 'standard'"
-          class="flex items-center space-x-1.5 px-3 py-1.5 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors cursor-pointer shadow-sm text-sm font-medium"
-        >
+        <label *ngIf="viewMode === 'standard'" class="btn btn-primary">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               stroke-linecap="round"
@@ -346,7 +343,9 @@ import { Folder } from '../../core/models/folder.model';
 
       <!-- Files -->
       <div *ngIf="!isLoading && files.length > 0">
-        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 px-2">Files</h3>
+        <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 px-2">
+          Fichiers
+        </h3>
         <div
           class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3"
         >
@@ -557,17 +556,17 @@ export class FileGridComponent {
       const date = new Date((folder as any).lastModified);
       const months = [
         'Jan',
-        'Feb',
+        'Fév',
         'Mar',
-        'Apr',
-        'May',
-        'Jun',
-        'Jul',
-        'Aug',
+        'Avr',
+        'Mai',
+        'Juin',
+        'Juil',
+        'Août',
         'Sep',
         'Oct',
         'Nov',
-        'Dec',
+        'Déc',
       ];
       return `${date.getDate()} ${months[date.getMonth()]}`;
     }
@@ -575,17 +574,17 @@ export class FileGridComponent {
     const date = new Date();
     const months = [
       'Jan',
-      'Feb',
+      'Fév',
       'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
+      'Avr',
+      'Mai',
+      'Juin',
+      'Juil',
+      'Août',
       'Sep',
       'Oct',
       'Nov',
-      'Dec',
+      'Déc',
     ];
     return `${date.getDate()} ${months[date.getMonth()]}`;
   }

@@ -143,4 +143,8 @@ export class AuthService {
   getMe(): Observable<User> {
     return this.http.get<User>(`${this.apiUrl}/me`);
   }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/change-password`, { currentPassword, newPassword });
+  }
 }

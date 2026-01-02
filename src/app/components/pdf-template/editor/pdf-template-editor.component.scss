@@ -204,34 +204,7 @@
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         border: 1px solid #e2e8f0;
 
-        .zoom-btn {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 32px;
-          height: 32px;
-          border: 1px solid #cbd5e1;
-          background: #f8fafc;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: all 0.2s;
-          color: #475569;
 
-          &:hover:not(:disabled) {
-            background: #e2e8f0;
-            border-color: #94a3b8;
-          }
-
-          &:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-          }
-
-          svg {
-            width: 16px;
-            height: 16px;
-          }
-        }
 
         .zoom-level {
           min-width: 50px;
@@ -331,41 +304,7 @@
     }
   }
 
-  .btn-upload {
-    padding: 0.4rem 0.75rem;
-    background: #f1f5f9;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
 
-    &:hover {
-      background: #e2e8f0;
-    }
-  }
-
-  .btn-save {
-    padding: 0.5rem 1rem;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-
-    &:hover:not(:disabled) {
-      background: #2563eb;
-    }
-
-    &:disabled {
-      background: #94a3b8;
-      cursor: not-allowed;
-    }
-  }
 
   &.fullscreen-mode {
     position: fixed;

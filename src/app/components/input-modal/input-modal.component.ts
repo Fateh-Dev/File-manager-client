@@ -27,19 +27,23 @@ import { FormsModule } from '@angular/forms';
         (click)="$event.stopPropagation()"
       >
         <!-- Header -->
-        <div class="p-4 border-b border-gray-200 bg-gray-50">
-          <div class="flex items-center space-x-2">
-            <div class="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div
+          class="p-6 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center rounded-t-xl"
+        >
+          <div class="flex items-center space-x-3">
+            <div
+              class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-200"
+            >
+              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M12 4v16m8-8H4"
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
                 ></path>
               </svg>
             </div>
-            <h2 class="text-base font-bold text-gray-800">{{ title }}</h2>
+            <h3 class="text-xl font-bold text-gray-800">{{ title }}</h3>
           </div>
         </div>
 
@@ -80,17 +84,14 @@ import { FormsModule } from '@angular/forms';
         </div>
 
         <!-- Footer -->
-        <div class="flex justify-end space-x-2 p-4 border-t border-gray-200 bg-gray-50">
-          <button
-            (click)="onCancel()"
-            class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium rounded-md hover:bg-gray-200 transition-colors text-sm"
-          >
+        <div class="flex space-x-3 p-6 border-t border-gray-100 bg-gray-50/50">
+          <button (click)="onCancel()" class="btn btn-secondary w-full justify-center">
             Annuler
           </button>
           <button
             (click)="onSubmit()"
             [disabled]="!inputValue.trim()"
-            class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            class="btn btn-primary w-full justify-center"
           >
             {{ submitText }}
           </button>
@@ -101,9 +102,9 @@ import { FormsModule } from '@angular/forms';
 })
 export class InputModalComponent implements OnChanges, AfterViewInit {
   @Input() isOpen = false;
-  @Input() title = 'Input';
+  @Input() title = 'Saisie';
   @Input() placeholder = '';
-  @Input() submitText = 'OK';
+  @Input() submitText = 'Valider';
   @Input() value = '';
   @Output() submit = new EventEmitter<string>();
   @Output() cancel = new EventEmitter<void>();

@@ -18,7 +18,9 @@ import { User } from '../../core/models/user.model';
         (click)="$event.stopPropagation()"
       >
         <!-- Header -->
-        <div class="p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-xl">
+        <div
+          class="p-6 border-b border-gray-100 bg-gray-50/50 rounded-t-xl flex items-center justify-between"
+        >
           <div class="flex items-center space-x-3">
             <div
               class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-200"
@@ -33,9 +35,9 @@ import { User } from '../../core/models/user.model';
               </svg>
             </div>
             <div>
-              <h2 class="text-xl font-bold text-gray-800">Storage Quota</h2>
+              <h2 class="text-xl font-bold text-gray-800">Quota de Stockage</h2>
               <p class="text-sm text-gray-500" *ngIf="user">
-                Updating limit for {{ user.username }}
+                Modification pour {{ user.username }}
               </p>
             </div>
           </div>
@@ -45,7 +47,7 @@ import { User } from '../../core/models/user.model';
         <div class="p-6">
           <div class="mb-6">
             <label class="block text-sm font-semibold text-gray-700 mb-2">
-              New Storage Limit (GB)
+              Nouvelle Limite (Go)
             </label>
             <div class="relative">
               <input
@@ -60,7 +62,7 @@ import { User } from '../../core/models/user.model';
                 autofocus
               />
               <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold"
-                >GB</span
+                >Go</span
               >
             </div>
           </div>
@@ -68,26 +70,17 @@ import { User } from '../../core/models/user.model';
           <!-- Quick Suggestions -->
           <div class="mb-6">
             <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">
-              Quick Additions
+              Ajouts Rapides
             </p>
             <div class="grid grid-cols-3 gap-3">
-              <button
-                (click)="addGB(5)"
-                class="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-lg hover:bg-blue-100 border border-blue-100 transition-all active:scale-95"
-              >
-                +5 GB
+              <button (click)="addGB(5)" class="btn btn-secondary w-full justify-center">
+                +5 Go
               </button>
-              <button
-                (click)="addGB(10)"
-                class="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-lg hover:bg-blue-100 border border-blue-100 transition-all active:scale-95"
-              >
-                +10 GB
+              <button (click)="addGB(10)" class="btn btn-secondary w-full justify-center">
+                +10 Go
               </button>
-              <button
-                (click)="addGB(20)"
-                class="px-4 py-2 bg-blue-50 text-blue-700 font-bold rounded-lg hover:bg-blue-100 border border-blue-100 transition-all active:scale-95"
-              >
-                +20 GB
+              <button (click)="addGB(20)" class="btn btn-secondary w-full justify-center">
+                +20 Go
               </button>
             </div>
           </div>
@@ -95,7 +88,9 @@ import { User } from '../../core/models/user.model';
           <!-- Current Usage Info -->
           <div class="bg-blue-50 rounded-xl p-4 border border-blue-100" *ngIf="user">
             <div class="flex justify-between items-center mb-1">
-              <span class="text-xs font-semibold text-blue-800 uppercase">Current Usage</span>
+              <span class="text-xs font-semibold text-blue-800 uppercase"
+                >Utilisation Actuelle</span
+              >
               <span class="text-xs font-bold text-blue-800"
                 >{{ getPercentage() | number : '1.0-0' }}%</span
               >
@@ -107,28 +102,23 @@ import { User } from '../../core/models/user.model';
               ></div>
             </div>
             <p class="text-[10px] text-blue-600 font-medium">
-              Using {{ user.usedStorage / (1024 * 1024 * 1024) | number : '1.2-2' }} GB of
-              {{ user.storageLimit / (1024 * 1024 * 1024) | number : '1.2-2' }} GB
+              Utilise {{ user.usedStorage / (1024 * 1024 * 1024) | number : '1.2-2' }} Go sur
+              {{ user.storageLimit / (1024 * 1024 * 1024) | number : '1.2-2' }} Go
             </p>
           </div>
         </div>
 
         <!-- Footer -->
-        <div
-          class="flex items-center justify-end space-x-3 p-6 border-t border-gray-100 bg-gray-50/50 rounded-b-xl"
-        >
-          <button
-            (click)="onCancel()"
-            class="px-6 py-2.5 text-gray-600 hover:text-gray-800 font-bold rounded-xl hover:bg-gray-200 transition-all text-sm active:scale-95"
-          >
-            Cancel
+        <div class="flex space-x-3 p-6 border-t border-gray-100 bg-gray-50/50 rounded-b-xl">
+          <button (click)="onCancel()" class="btn btn-secondary w-full justify-center">
+            Annuler
           </button>
           <button
             (click)="onSubmit()"
             [disabled]="limitGB < 0"
-            class="px-8 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all text-sm font-bold active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+            class="btn btn-primary w-full justify-center"
           >
-            Update Quota
+            Mettre à jour
           </button>
         </div>
       </div>

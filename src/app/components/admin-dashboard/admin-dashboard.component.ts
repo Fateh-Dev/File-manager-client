@@ -3,13 +3,13 @@ import { CommonModule } from '@angular/common';
 import { AdminService } from '../../core/services/admin.service';
 import { User } from '../../core/models/user.model';
 import { DialogComponent } from '../dialog/dialog.component';
-
 import { QuotaDialogComponent } from '../quota-dialog/quota-dialog.component';
+import { InputModalComponent } from '../input-modal/input-modal.component';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, DialogComponent, QuotaDialogComponent],
+  imports: [CommonModule, DialogComponent, QuotaDialogComponent, InputModalComponent],
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent implements OnInit {
@@ -27,6 +27,11 @@ export class AdminDashboardComponent implements OnInit {
   };
 
   quotaDialog = {
+    isOpen: false,
+    user: null as User | null,
+  };
+
+  passwordDialog = {
     isOpen: false,
     user: null as User | null,
   };
@@ -170,6 +175,37 @@ export class AdminDashboardComponent implements OnInit {
 
   onQuotaCancel() {
     this.quotaDialog.isOpen = false;
+    this.cdr.detectChanges();
+  }
+
+  resetPassword(user: User): void {
+    this.passwordDialog = {
+      isOpen: true,
+      user: user,
+    };
+    this.cdr.detectChanges();
+  }
+
+  onPasswordSubmit(newPassword: string) {
+    if (this.passwordDialog.user) {
+      this.adminService.resetUserPassword(this.passwordDialog.user.id, newPassword).subscribe({
+        next: () => {
+          this.passwordDialog.isOpen = false;
+          this.showDialog('Succès', 'Mot de passe réinitialisé avec succès', 'success');
+        },
+        error: (err) => {
+          this.showDialog(
+            'Erreur',
+            err.error || 'Échec de la réinitialisation du mot de passe',
+            'error'
+          );
+        },
+      });
+    }
+  }
+
+  onPasswordCancel() {
+    this.passwordDialog.isOpen = false;
     this.cdr.detectChanges();
   }
 
