@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -184,7 +184,11 @@ export class ProfileComponent implements OnInit {
     buttonText: 'OK',
   };
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     this.username = this.authService.getUsername();
@@ -199,6 +203,7 @@ export class ProfileComponent implements OnInit {
         this.storageLimit = user.storageLimit || 5 * 1024 * 1024 * 1024;
         this.storagePercent =
           this.storageLimit > 0 ? (this.usedStorage / this.storageLimit) * 100 : 0;
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading user info:', err);
@@ -221,15 +226,19 @@ export class ProfileComponent implements OnInit {
     this.authService.changePassword(this.currentPassword, this.newPassword).subscribe({
       next: () => {
         this.isLoading = false;
+        this.cdr.detectChanges();
         this.currentPassword = '';
         this.newPassword = '';
         this.confirmPassword = '';
         this.showDialog('Succès', 'Votre mot de passe a été changé avec succès.', 'success');
+        this.cdr.detectChanges();
       },
       error: (err) => {
         this.isLoading = false;
+        this.cdr.detectChanges();
         const message = err.error || 'Une erreur est survenue.';
         this.showDialog('Erreur', message, 'error');
+        this.cdr.detectChanges();
       },
     });
   }
