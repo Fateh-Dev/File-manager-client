@@ -12,6 +12,7 @@ import { InputModalComponent } from '../input-modal/input-modal.component';
   imports: [CommonModule, DialogComponent, QuotaDialogComponent, InputModalComponent],
   templateUrl: './admin-dashboard.component.html',
 })
+// Lint fix: ensuring InputModalComponent is recognized as used in template
 export class AdminDashboardComponent implements OnInit {
   users: User[] = [];
   isLoading = false;

@@ -6,6 +6,7 @@ import { SidebarComponent } from './components/sidebar/sidebar.component';
 import { LoginComponent } from './components/login/login.component';
 import { AuthService } from './core/services/auth.service';
 import { NavigationService } from './core/services/navigation.service';
+import { ShareService } from './core/services/share.service';
 
 @Component({
   selector: 'app-root',
@@ -19,11 +20,13 @@ export class App implements OnInit {
   isAdmin = false;
   username: string | null = null;
   searchQuery: string = '';
-  showCreateFolder = false;
+  hasNewSharedItems = false;
+  showSearch = true;
 
   constructor(
     private authService: AuthService,
     private navigationService: NavigationService,
+    private shareService: ShareService,
     private router: Router
   ) {
     // Check authentication status on initialization (including page refresh)
@@ -42,6 +45,9 @@ export class App implements OnInit {
     // Set up periodic token validation (check every 30 seconds)
     setInterval(() => {
       this.checkAuthentication();
+      if (this.isAuthenticated) {
+        this.checkSharedItems();
+      }
     }, 30000);
 
     // Listen for storage events (handles token changes from other tabs)
@@ -53,12 +59,30 @@ export class App implements OnInit {
       });
     }
 
-    this.navigationService.showCreateFolder$.subscribe((show) => {
-      // Use microtask to avoid ExpressionChangedAfterItHasBeenCheckedError
-      Promise.resolve().then(() => {
-        this.showCreateFolder = show;
-      });
+    this.navigationService.hasNewSharedItems$.subscribe((hasNew) => {
+      this.hasNewSharedItems = hasNew;
     });
+
+    // Listen for route changes to clear notification if on shared-with-me
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event: any) => {
+        const url = event.urlAfterRedirects || event.url;
+        this.showSearch = url === '/' || url === '';
+        if (url === '/shared-with-me') {
+          this.navigationService.setHasNewSharedItems(false);
+          this.shareService.getSharedWithMe().subscribe((items) => {
+            if (typeof localStorage !== 'undefined') {
+              localStorage.setItem('last_shared_count', items.length.toString());
+            }
+          });
+        }
+      });
+
+    // Initial shared items check
+    if (this.isAuthenticated) {
+      this.checkSharedItems();
+    }
   }
 
   checkAuthentication() {
@@ -104,6 +128,36 @@ export class App implements OnInit {
     this.router.navigate(['/shared-with-me']);
   }
 
+  private checkSharedItems() {
+    console.log('Checking shared items...');
+    this.shareService.getSharedWithMe().subscribe({
+      next: (items) => {
+        console.log(`Found ${items.length} shared items`);
+        if (typeof localStorage !== 'undefined') {
+          const storedValue = localStorage.getItem('last_shared_count');
+          console.log(`Stored count: ${storedValue}`);
+
+          if (storedValue === null) {
+            // If it's the first time we check, and there are items, notify
+            if (items.length > 0) {
+              console.log('First time check: items found, notifying');
+              this.navigationService.setHasNewSharedItems(true);
+            }
+          } else {
+            const storedCount = parseInt(storedValue);
+            if (items.length > storedCount) {
+              console.log(`New items found: ${items.length} > ${storedCount}`);
+              this.navigationService.setHasNewSharedItems(true);
+            } else {
+              console.log('No new items');
+            }
+          }
+        }
+      },
+      error: (err) => console.error('Failed to check shared items', err),
+    });
+  }
+
   navigateToProfile() {
     this.router.navigate(['/profile']);
   }
@@ -127,10 +181,6 @@ export class App implements OnInit {
   }
 
   // Header controls
-  createFolder() {
-    this.navigationService.emitCreateFolder();
-  }
-
   onSearch(event: Event) {
     const input = event.target as HTMLInputElement;
     this.searchQuery = input.value;

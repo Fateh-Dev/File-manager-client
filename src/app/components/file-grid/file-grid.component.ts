@@ -97,18 +97,110 @@ import { Folder } from '../../core/models/folder.model';
             </ng-container>
           </div>
         </div>
-        <label *ngIf="viewMode === 'standard'" class="btn btn-primary">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-            ></path>
-          </svg>
-          <span>Importer</span>
-          <input type="file" multiple class="hidden" (change)="onFileSelect($event)" #fileInput />
-        </label>
+        <div class="flex items-center space-x-2">
+          <!-- View Toggle Buttons -->
+          <div class="flex bg-gray-200 p-1 rounded-lg mr-2">
+            <button
+              (click)="displayMode = 'grid'"
+              class="p-1.5 rounded-md transition-all"
+              [class.bg-white]="displayMode === 'grid'"
+              [class.shadow-sm]="displayMode === 'grid'"
+              title="Grandes Icônes"
+            >
+              <svg
+                class="w-4 h-4 text-gray-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                />
+              </svg>
+            </button>
+            <button
+              (click)="displayMode = 'grid-small'"
+              class="p-1.5 rounded-md transition-all"
+              [class.bg-white]="displayMode === 'grid-small'"
+              [class.shadow-sm]="displayMode === 'grid-small'"
+              title="Petites Icônes"
+            >
+              <svg
+                class="w-4 h-4 text-gray-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"
+                />
+              </svg>
+            </button>
+            <button
+              (click)="displayMode = 'list'"
+              class="p-1.5 rounded-md transition-all"
+              [class.bg-white]="displayMode === 'list'"
+              [class.shadow-sm]="displayMode === 'list'"
+              title="Liste"
+            >
+              <svg
+                class="w-4 h-4 text-gray-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
+            </button>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <button *ngIf="showCreateFolder" class="btn btn-primary" (click)="createFolder.emit()">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="3"
+                  d="M12 4v16m8-8H4"
+                ></path>
+              </svg>
+              <span>Nouveau Dossier</span>
+            </button>
+
+            <label
+              *ngIf="viewMode === 'standard'"
+              class="btn btn-secondary bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                ></path>
+              </svg>
+              <span>Importer</span>
+              <input
+                type="file"
+                multiple
+                class="hidden"
+                (change)="onFileSelect($event)"
+                #fileInput
+              />
+            </label>
+          </div>
+        </div>
       </div>
 
       <!-- Loading state -->
@@ -147,13 +239,183 @@ import { Folder } from '../../core/models/folder.model';
         <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-4 px-2">
           Dossiers
         </h3>
+        <!-- Folder Grid View -->
         <div
-          class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-x-4 gap-y-6"
+          *ngIf="displayMode !== 'list'"
+          class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-x-4 gap-y-6"
         >
           <div
+            *ngFor="let folder of folders"
+            class="relative group transition-all duration-300 rounded-xl cursor-pointer flex flex-col items-center p-4 hover:bg-white hover:shadow-md border border-transparent hover:border-gray-100"
+            (click)="onFolderClick($event, folder)"
+          >
+            <!-- Folder Icon -->
+            <div
+              [ngClass]="displayMode === 'grid' ? 'w-20 h-16' : 'w-12 h-10'"
+              class="relative text-gray-600 transition-transform duration-200 group-hover:scale-105 mx-auto"
+            >
+              <svg fill="currentColor" viewBox="0 0 24 24" class="w-full h-full">
+                <path
+                  d="M10 4H4c-1.11 0-2 .89-2 2v12a2 2 0 002 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"
+                  style="color: #cab792;"
+                />
+              </svg>
+              <div
+                class="absolute top-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white"
+                [ngClass]="getFolderColor(folder)"
+              ></div>
+            </div>
+
+            <!-- Folder Info -->
+            <div class="w-full text-center mt-3">
+              <h4
+                class="font-bold text-gray-800 truncate leading-tight text-sm"
+                [title]="folder.name"
+              >
+                {{ folder.name }}
+              </h4>
+              <p
+                *ngIf="isSharedView && folder.ownerName"
+                class="text-[10px] text-blue-500 font-bold truncate mt-1 bg-blue-50 rounded-full px-2 py-0.5 inline-block"
+              >
+                {{ folder.ownerName }}
+              </p>
+            </div>
+
+            <!-- Menu Button -->
+            <button
+              class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-gray-100 transition-all z-10"
+              (click)="onFolderMenuClick($event, folder)"
+            >
+              <svg
+                class="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                ></path>
+              </svg>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div
+              *ngIf="showMenuFor?.id === folder.id"
+              class="menu-dropdown absolute right-0 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
+              (click)="$event.stopPropagation()"
+            >
+              <ng-container *ngIf="viewMode !== 'recycle-bin'">
+                <button
+                  *ngIf="!isSharedView || folder.accessLevel === 1"
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  (click)="onRenameFolder(folder)"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    ></path>
+                  </svg>
+                  <span>Renommer</span>
+                </button>
+                <button
+                  *ngIf="!isSharedView || folder.accessLevel === 1"
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  (click)="onMoveFolder(folder)"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    ></path>
+                  </svg>
+                  <span>Déplacer</span>
+                </button>
+                <button
+                  *ngIf="!isSharedView"
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  (click)="
+                    share.emit({ id: folder.id, type: 'folder', name: folder.name }); closeMenu()
+                  "
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 100-2.684a3 3 0 000 2.684zm0 9a3 3 0 100-2.684a3 3 0 000 2.684z"
+                    ></path>
+                  </svg>
+                  <span>Partager</span>
+                </button>
+                <div class="border-t border-gray-200 my-1"></div>
+                <button
+                  *ngIf="!isSharedView || folder.accessLevel === 1"
+                  class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                  (click)="onDeleteFolder(folder)"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    ></path>
+                  </svg>
+                  <span>Supprimer</span>
+                </button>
+              </ng-container>
+
+              <ng-container *ngIf="viewMode === 'recycle-bin'">
+                <button
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  (click)="restoreFolder.emit(folder); closeMenu()"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    ></path>
+                  </svg>
+                  <span>Restaurer</span>
+                </button>
+                <div class="border-t border-gray-200 my-1"></div>
+                <button
+                  class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                  (click)="onPurgeFolder(folder)"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    ></path>
+                  </svg>
+                  <span>Supprimer Définitivement</span>
+                </button>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- Folder List View -->
+        <div *ngIf="displayMode === 'list'" class="flex flex-col space-y-1">
+          <div
             *ngFor="let folder of folders; let i = index"
-            class="relative flex flex-col items-center justify-start py-2 px-1 rounded-lg cursor-pointer transition-all duration-300 group hover:bg-gray-50/70 hover:shadow-sm animate-fade-in"
+            class="group flex flex-row items-center px-4 py-2 rounded-lg hover:bg-gray-100 border-b border-gray-100 last:border-0 cursor-pointer"
             [style.animation-delay]="i * 0.05 + 's'"
+            [class.animate-fade-in]="i < 30"
             [class.opacity-50]="draggingFolder?.id === folder.id"
             [class.bg-blue-50]="dragOverFolder?.id === folder.id"
             [draggable]="true"
@@ -164,58 +426,38 @@ import { Folder } from '../../core/models/folder.model';
             (drop)="onFolderDrop($event, folder)"
             (click)="onFolderClick($event, folder)"
           >
-            <div
-              class="relative w-24 h-18 text-gray-600 transition-transform duration-200 ease-in-out group-hover:scale-105"
-            >
+            <div class="w-8 h-8 mr-4 relative text-gray-600">
               <svg fill="currentColor" viewBox="0 0 24 24" class="w-full h-full">
                 <path
                   d="M10 4H4c-1.11 0-2 .89-2 2v12a2 2 0 002 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"
-                  style="
-    color: #cab792;
-  "
+                  style="color: #cab792;"
                 />
               </svg>
-
               <div
-                class="absolute top-0 right-0 w-3 h-3 rounded-full"
+                class="absolute top-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white"
                 [ngClass]="getFolderColor(folder)"
               ></div>
-
-              <div
-                *ngIf="getFolderFileCount(folder) > 0"
-                class="absolute bottom-0 right-0 bg-white border border-gray-200 rounded-full px-1 py-0 text-[8px] font-semibold text-gray-700 leading-none shadow-sm"
-              >
-                {{ getFolderFileCount(folder) }}
+            </div>
+            <div class="flex-1 flex items-center justify-between">
+              <div class="flex flex-col">
+                <h4 class="font-semibold text-gray-800 text-sm">{{ folder.name }}</h4>
+                <p
+                  *ngIf="isSharedView && folder.ownerName"
+                  class="text-[10px] text-blue-600 font-bold"
+                >
+                  Par: {{ folder.ownerName }}
+                </p>
+              </div>
+              <div class="flex items-center space-x-8 text-xs text-gray-500 mr-12">
+                <span class="w-24 text-right">{{ getFolderFileCount(folder) }} fichiers</span>
+                <span class="w-32">{{ getLastModifiedDate(folder) }}</span>
               </div>
             </div>
-
-            <div class="w-full text-center mt-2">
-              <h4
-                class="text-xs font-semibold text-gray-800 truncate leading-tight"
-                [title]="folder.name"
-              >
-                {{ folder.name }}
-              </h4>
-
-              <p
-                *ngIf="isSharedView && folder.ownerName"
-                class="text-[10px] text-blue-600 font-bold truncate mt-0.5"
-              >
-                Par: {{ folder.ownerName }}
-              </p>
-
-              <p class="text-[10px] text-gray-500 truncate mt-0.5" title="Last Modified Date">
-                {{ getLastModifiedDate(folder) }}
-              </p>
-            </div>
-
-            <div
-              class="absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
+            <!-- Menu Button -->
+            <div class="absolute right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 class="menu-toggle w-6 h-6 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition-all"
                 (click)="onFolderMenuClick($event, folder)"
-                title="Folder options"
               >
                 <svg
                   class="w-3 h-3 text-gray-600"
@@ -233,11 +475,11 @@ import { Folder } from '../../core/models/folder.model';
               </button>
             </div>
 
+            <!-- Dropdown Menu -->
             <div
               *ngIf="showMenuFor?.id === folder.id"
-              class="menu-dropdown absolute right-0 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
+              class="menu-dropdown absolute right-8 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
               (click)="$event.stopPropagation()"
-              (mousedown)="$event.stopPropagation()"
             >
               <ng-container *ngIf="viewMode !== 'recycle-bin'">
                 <button
@@ -346,52 +588,216 @@ import { Folder } from '../../core/models/folder.model';
         <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 px-2">
           Fichiers
         </h3>
+        <!-- Files Grid View -->
         <div
-          class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3"
+          *ngIf="displayMode !== 'list'"
+          class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-4 px-2"
         >
           <div
-            *ngFor="let file of files; let i = index"
-            class="bg-white p-3 rounded-lg shadow-sm hover:shadow-md cursor-pointer border border-gray-200 flex flex-col items-center justify-center transition-all duration-200 group relative animate-fade-in"
-            [style.animation-delay]="i * 0.05 + 's'"
-            [class.opacity-50]="draggingFile?.id === file.id"
-            [draggable]="true"
-            (dragstart)="onFileDragStart($event, file)"
-            (dragend)="onFileDragEnd($event)"
+            *ngFor="let file of files"
+            class="relative group transition-all duration-200 rounded-xl cursor-pointer bg-white p-4 border border-gray-100 shadow-sm hover:shadow-md flex flex-col items-center text-center w-full"
+            (click)="previewFile.emit(file)"
           >
+            <!-- File Icon -->
             <div
-              (click)="previewFile.emit(file)"
-              class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center mb-2 group-hover:bg-blue-600 transition-colors"
+              [ngClass]="[
+                displayMode === 'grid' ? 'w-16 h-16 rounded-2xl mb-3' : 'w-12 h-12 rounded-xl mb-2',
+                getFileIconConfig(file)!.color
+              ]"
+              class="flex items-center justify-center transition-transform duration-200 group-hover:scale-110 shadow-sm mx-auto"
             >
-              <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                [ngClass]="displayMode === 'grid' ? 'w-8 h-8' : 'w-6 h-6'"
+                class="text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  [attr.d]="getFileIconConfig(file)!.icon"
                 ></path>
               </svg>
             </div>
-            <span
-              (click)="previewFile.emit(file)"
-              class="text-xs font-medium text-gray-700 truncate w-full text-center group-hover:text-blue-600 transition-colors"
-              >{{ file.name }}</span
-            >
-            <p
-              *ngIf="isSharedView && file.ownerName"
-              class="text-[10px] text-blue-600 font-bold mt-0.5 truncate w-full text-center"
-            >
-              Par: {{ file.ownerName }}
-            </p>
-            <span class="text-xs text-gray-400 mt-0.5">{{ formatFileSize(file.size) }}</span>
 
-            <!-- File actions menu button -->
-            <div
-              class="absolute top-0 right-0 z-10 opacity-0 group-hover:opacity-100 transition-opacity"
+            <!-- File Info -->
+            <div class="w-full">
+              <span
+                class="font-semibold text-gray-700 truncate block transition-colors group-hover:text-blue-600 text-sm"
+                [title]="file.name"
+              >
+                {{ file.name }}
+              </span>
+              <span class="text-[10px] text-gray-400 font-medium block mt-1">
+                {{ formatFileSize(file.size) }}
+              </span>
+              <p
+                *ngIf="isSharedView && file.ownerName"
+                class="text-[9px] text-blue-500 font-bold mt-1 bg-blue-50 px-1.5 py-0.5 rounded-full inline-block"
+              >
+                {{ file.ownerName }}
+              </p>
+            </div>
+
+            <!-- Context Menu Button -->
+            <button
+              class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-gray-100 transition-all z-10"
+              (click)="onFileMenuClick($event, file)"
             >
+              <svg
+                class="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                ></path>
+              </svg>
+            </button>
+
+            <!-- File Context Menu -->
+            <div
+              *ngIf="showMenuForFile?.id === file.id"
+              class="menu-dropdown absolute right-0 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
+              (click)="$event.stopPropagation()"
+            >
+              <ng-container *ngIf="viewMode !== 'recycle-bin'">
+                <button
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  (click)="downloadFile.emit(file); closeFileMenu()"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                    ></path>
+                  </svg>
+                  <span>Télécharger</span>
+                </button>
+                <button
+                  *ngIf="!isSharedView"
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  (click)="
+                    share.emit({ id: file.id, type: 'file', name: file.name }); closeFileMenu()
+                  "
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 100-2.684a3 3 0 000 2.684zm0 9a3 3 0 100-2.684a3 3 0 000 2.684z"
+                    ></path>
+                  </svg>
+                  <span>Partager</span>
+                </button>
+                <div class="border-t border-gray-200 my-1"></div>
+                <button
+                  *ngIf="!isSharedView || file.accessLevel === 1"
+                  class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                  (click)="onDeleteFile(file)"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    ></path>
+                  </svg>
+                  <span>Supprimer</span>
+                </button>
+              </ng-container>
+
+              <ng-container *ngIf="viewMode === 'recycle-bin'">
+                <button
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 flex items-center space-x-2"
+                  (click)="restoreFile.emit(file); closeFileMenu()"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    ></path>
+                  </svg>
+                  <span>Restaurer</span>
+                </button>
+                <div class="border-t border-gray-200 my-1"></div>
+                <button
+                  class="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                  (click)="onPurgeFile(file)"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                    ></path>
+                  </svg>
+                  <span>Supprimer Définitivement</span>
+                </button>
+              </ng-container>
+            </div>
+          </div>
+        </div>
+
+        <!-- Files List View -->
+        <div *ngIf="displayMode === 'list'" class="flex flex-col space-y-1">
+          <div
+            *ngFor="let file of files; let i = index"
+            class="group flex flex-row items-center px-4 py-2 rounded-lg hover:bg-gray-100 border-b border-gray-100 last:border-0 cursor-pointer animate-fade-in"
+            [style.animation-delay]="i * 0.05 + 's'"
+            [class.animate-fade-in]="i < 50"
+            [class.opacity-50]="draggingFile?.id === file.id"
+            [draggable]="true"
+            (dragstart)="onFileDragStart($event, file)"
+            (dragend)="onFileDragEnd($event)"
+            (click)="previewFile.emit(file)"
+          >
+            <div
+              [ngClass]="getFileIconConfig(file)!.color"
+              class="w-8 h-8 mr-4 rounded-md flex items-center justify-center"
+            >
+              <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  [attr.d]="getFileIconConfig(file)!.icon"
+                ></path>
+              </svg>
+            </div>
+            <div class="flex-1 flex items-center justify-between">
+              <div class="flex flex-col">
+                <span class="font-medium text-gray-700 text-sm">{{ file.name }}</span>
+                <p
+                  *ngIf="isSharedView && file.ownerName"
+                  class="text-[10px] text-blue-600 font-bold"
+                >
+                  Par: {{ file.ownerName }}
+                </p>
+              </div>
+              <div class="flex items-center space-x-8 text-xs text-gray-500 mr-12">
+                <span class="w-24 text-right">{{ formatFileSize(file.size) }}</span>
+                <span class="w-32">{{ file.uploadDate | date : 'dd MMM yyyy' }}</span>
+              </div>
+            </div>
+            <!-- File actions menu button -->
+            <div class="absolute right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
               <button
                 class="menu-toggle w-6 h-6 flex items-center justify-center rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition-all"
                 (click)="onFileMenuClick($event, file)"
-                title="File options"
               >
                 <svg
                   class="w-3 h-3 text-gray-600"
@@ -409,12 +815,11 @@ import { Folder } from '../../core/models/folder.model';
               </button>
             </div>
 
-            <!-- File context menu -->
+            <!-- File Context Menu -->
             <div
               *ngIf="showMenuForFile?.id === file.id"
-              class="menu-dropdown absolute right-0 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
+              class="menu-dropdown absolute right-8 top-8 z-50 bg-white rounded-lg shadow-xl border border-gray-200 py-1 min-w-[160px]"
               (click)="$event.stopPropagation()"
-              (mousedown)="$event.stopPropagation()"
             >
               <ng-container *ngIf="viewMode !== 'recycle-bin'">
                 <button
@@ -512,10 +917,12 @@ export class FileGridComponent {
   @Input() isLoading = false;
   @Input() viewMode: 'standard' | 'recent' | 'recycle-bin' = 'standard';
   @Input() isSharedView = false;
+  @Input() showCreateFolder = true;
   @Output() openFolder = new EventEmitter<Folder>();
   @Output() previewFile = new EventEmitter<FileMetadata>();
   @Output() downloadFile = new EventEmitter<FileMetadata>();
   @Output() uploadFiles = new EventEmitter<FileList>();
+  @Output() createFolder = new EventEmitter<void>();
   @Output() navigateUp = new EventEmitter<void>();
   @Output() navigateToBreadcrumb = new EventEmitter<number>();
   @Output() renameFolder = new EventEmitter<{ folder: Folder; newName: string }>();
@@ -535,7 +942,101 @@ export class FileGridComponent {
   dragOverFolder: Folder | null = null;
   dragOverBreadcrumbId: number | null = null;
   showMenuFor: Folder | null = null;
+  displayMode: 'grid' | 'grid-small' | 'list' = 'grid';
   showMenuForFile: FileMetadata | null = null;
+
+  getFileIconConfig(file: FileMetadata): { icon: string; color: string } {
+    const ext = (file.extension || '').toLowerCase().replace('.', '');
+
+    // Image Extensions
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp'].includes(ext)) {
+      return {
+        color: 'bg-emerald-500',
+        icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z',
+      };
+    }
+
+    // Video Extensions
+    if (['mp4', 'mkv', 'avi', 'mov', 'webm'].includes(ext)) {
+      return {
+        color: 'bg-rose-500',
+        icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z',
+      };
+    }
+
+    // Audio Extensions
+    if (['mp3', 'wav', 'aac', 'flac', 'ogg'].includes(ext)) {
+      return {
+        color: 'bg-violet-500',
+        icon: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3',
+      };
+    }
+
+    // Document & Spreadsheet Extensions
+    switch (ext) {
+      case 'pdf':
+        return {
+          color: 'bg-red-500',
+          icon: 'M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z',
+        };
+      case 'doc':
+      case 'docx':
+        return {
+          color: 'bg-blue-600',
+          icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+        };
+      case 'xls':
+      case 'xlsx':
+        return {
+          color: 'bg-green-600',
+          icon: 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+        };
+      case 'ppt':
+      case 'pptx':
+        return {
+          color: 'bg-orange-500',
+          icon: 'M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z',
+        };
+      case 'txt':
+      case 'md':
+        return {
+          color: 'bg-gray-500',
+          icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+        };
+      case 'zip':
+      case 'rar':
+      case '7z':
+      case 'tar':
+      case 'gz':
+        return {
+          color: 'bg-amber-500',
+          icon: 'M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4',
+        };
+      case 'html':
+      case 'css':
+      case 'js':
+      case 'ts':
+      case 'json':
+      case 'py':
+      case 'cs':
+      case 'cpp':
+        return {
+          color: 'bg-slate-700',
+          icon: 'M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4',
+        };
+      case 'exe':
+      case 'msi':
+        return {
+          color: 'bg-indigo-600',
+          icon: 'M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
+        };
+      default:
+        return {
+          color: 'bg-blue-500',
+          icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z',
+        };
+    }
+  }
 
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Octets';

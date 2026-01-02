@@ -62,7 +62,9 @@ import { Subscription } from 'rxjs';
           [breadcrumbTrail]="breadcrumbTrail"
           [isLoading]="isLoading"
           [viewMode]="viewMode"
+          [showCreateFolder]="showCreateFolder"
           (openFolder)="onOpenFolder($event)"
+          (createFolder)="createFolder()"
           (previewFile)="previewFile($event)"
           (downloadFile)="downloadFile($event)"
           (uploadFiles)="uploadFiles($event)"
@@ -149,6 +151,7 @@ export class FileManagerComponent implements OnInit, OnDestroy {
   currentFolderId: number = 1;
   rootFolderId: number = 1;
   showFolderModal = false;
+  showCreateFolder = true;
   modalTitle = 'Créer un Nouveau Dossier';
   modalPlaceholder = 'Entrez le nom du dossier';
   modalSubmitText = 'Créer';
@@ -207,6 +210,13 @@ export class FileManagerComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.navigationService.createFolder$.subscribe(() => {
         this.createFolder();
+      })
+    );
+
+    this.subs.add(
+      this.navigationService.showCreateFolder$.subscribe((show) => {
+        this.showCreateFolder = show;
+        this.cdr.detectChanges();
       })
     );
 
