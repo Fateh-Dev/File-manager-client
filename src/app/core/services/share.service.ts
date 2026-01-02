@@ -22,7 +22,7 @@ export interface SharedLinkInfo {
   providedIn: 'root',
 })
 export class ShareService {
-  private apiUrl = 'http://localhost:5089/api/sharing';
+  private apiUrl = '/api/sharing';
 
   constructor(private http: HttpClient) {}
 

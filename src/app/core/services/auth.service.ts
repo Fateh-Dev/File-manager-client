@@ -7,7 +7,7 @@ import { User } from '../models/user.model';
   providedIn: 'root',
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:5089/api/auth';
+  private apiUrl = '/api/auth';
   private tokenKey = 'auth_token';
   private currentUserSubject = new BehaviorSubject<any>(null);
 
@@ -41,6 +41,8 @@ export class AuthService {
 
   logout() {
     localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem('pdf_template_draft');
+    localStorage.removeItem('last_shared_count'); // Also clear other app-specific state
     this.currentUserSubject.next(null);
   }
 

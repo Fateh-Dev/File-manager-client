@@ -7,7 +7,7 @@ import { TemplatePayload } from '../models/template-payload.model';
   providedIn: 'root',
 })
 export class PdfTemplateService {
-  private apiUrl = 'http://localhost:5089/api/PdfTemplate';
+  private apiUrl = '/api/PdfTemplate';
 
   constructor(private http: HttpClient) {}
 
