@@ -241,7 +241,7 @@ export class SharedWithMeComponent implements OnInit {
     }
   }
 
-  uploadFiles(fileList: FileList) {
+  uploadFiles(fileList: FileList | File[]) {
     if (!this.currentFolderId) return;
     this.isLoading = true;
     const files = Array.from(fileList);

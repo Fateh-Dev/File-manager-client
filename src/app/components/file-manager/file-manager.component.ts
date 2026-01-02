@@ -32,9 +32,24 @@ import { Subscription } from 'rxjs';
       >
         <div
           *ngFor="let item of uploadQueue"
-          class="bg-white rounded-xl shadow-2xl border border-gray-100 p-4 animate-slide-in"
+          class="bg-white rounded-xl shadow-2xl border border-gray-100 p-4 animate-slide-in relative group"
         >
-          <div class="flex items-center justify-between mb-2">
+          <button
+            (click)="cancelUpload(item)"
+            class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:bg-rose-50 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+            title="Annuler le téléchargement"
+          >
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+
+          <div class="flex items-center justify-between mb-2 pr-4">
             <span class="text-xs font-bold text-gray-700 truncate w-48">{{ item.fileName }}</span>
             <span class="text-[10px] font-bold text-blue-600 px-2 py-0.5 bg-blue-50 rounded-full"
               >{{ item.progress }}%</span
@@ -172,7 +187,7 @@ export class FileManagerComponent implements OnInit, OnDestroy {
     cancelText: 'Annuler',
   };
 
-  uploadQueue: { fileName: string; progress: number }[] = [];
+  uploadQueue: { fileName: string; progress: number; sub?: Subscription }[] = [];
 
   pendingDelete: { type: 'file' | 'folder'; id: number; name: string } | null = null;
   pendingUploadFiles: File[] | null = null;
@@ -467,13 +482,15 @@ export class FileManagerComponent implements OnInit, OnDestroy {
           targetFolderId = parentId;
         }
 
-        // Now upload the file to the determined targetFolderId
-        const queueItem = { fileName: file.name, progress: 0 };
+        const queueItem: { fileName: string; progress: number; sub?: Subscription } = {
+          fileName: file.name,
+          progress: 0,
+        };
         this.uploadQueue.push(queueItem);
         this.cdr.detectChanges();
 
         await new Promise<void>((resolve, reject) => {
-          this.fileService.uploadFile(file, targetFolderId).subscribe({
+          const sub = this.fileService.uploadFile(file, targetFolderId).subscribe({
             next: (event: any) => {
               if (event.type === HttpEventType.UploadProgress) {
                 const progress = Math.round((100 * event.loaded) / event.total);
@@ -492,6 +509,7 @@ export class FileManagerComponent implements OnInit, OnDestroy {
               reject(err);
             },
           });
+          queueItem.sub = sub;
         });
       } catch (error) {
         console.error('Error during upload sequence:', error);
@@ -500,6 +518,14 @@ export class FileManagerComponent implements OnInit, OnDestroy {
 
     // Refresh folder view after all uploads (or as they finish)
     this.loadFolder(this.currentFolderId);
+  }
+
+  cancelUpload(item: any) {
+    if (item.sub) {
+      item.sub.unsubscribe();
+    }
+    this.uploadQueue = this.uploadQueue.filter((i) => i !== item);
+    this.cdr.detectChanges();
   }
 
   private handleUploadError(err: any) {
