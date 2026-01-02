@@ -7,7 +7,7 @@
 
   .editor-header {
     background: white;
-    padding: 1rem 2rem;
+    padding: 0.5rem 1.5rem;
     border-bottom: 1px solid #e2e8f0;
     display: flex;
     justify-content: space-between;
@@ -15,32 +15,36 @@
 
     h2 {
       margin: 0;
-      font-size: 1.25rem;
+      font-size: 1rem;
+      font-weight: 700;
       color: #1e293b;
     }
 
     .header-actions {
       display: flex;
-      gap: 1.5rem;
+      gap: 1rem;
       align-items: center;
 
       .input-group {
         display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
 
         label {
-          font-size: 0.75rem;
-          font-weight: 600;
+          font-size: 0.7rem;
+          font-weight: 700;
           color: #64748b;
           text-transform: uppercase;
+          white-space: nowrap;
         }
 
         input {
-          padding: 0.5rem;
+          padding: 0.4rem 0.75rem;
+          font-size: 0.875rem;
           border: 1px solid #cbd5e1;
-          border-radius: 4px;
-          min-width: 200px;
+          border-radius: 6px;
+          min-width: 180px;
 
           &:focus {
             outline: 2px solid #3b82f6;
@@ -328,12 +332,12 @@
   }
 
   .btn-upload {
-    padding: 0.5rem 1rem;
+    padding: 0.4rem 0.75rem;
     background: #f1f5f9;
     border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
+    border-radius: 6px;
+    font-size: 0.8125rem;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
 
@@ -343,12 +347,12 @@
   }
 
   .btn-save {
-    padding: 0.625rem 1.25rem;
+    padding: 0.5rem 1rem;
     background: #3b82f6;
     color: white;
     border: none;
     border-radius: 6px;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
@@ -360,6 +364,24 @@
     &:disabled {
       background: #94a3b8;
       cursor: not-allowed;
+    }
+  }
+
+  &.fullscreen-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    margin: 0;
+    
+    .editor-header {
+      padding: 0.75rem 2rem;
+    }
+
+    .editor-main {
+      height: calc(100vh - 60px); // Header height in fullscreen
     }
   }
 }

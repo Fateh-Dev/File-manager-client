@@ -17,6 +17,8 @@ import { FileSystemService } from '../../../core/services/file-system.service';
 
 type EditorMode = 'IDLE' | 'DRAWING' | 'MOVING' | 'RESIZING';
 
+const STORAGE_KEY = 'pdf_template_draft';
+
 @Component({
   selector: 'app-pdf-template-editor',
   standalone: true,
@@ -37,6 +39,7 @@ export class PdfTemplateEditorComponent implements OnInit {
   mode: EditorMode = 'IDLE';
 
   imageUrl: string | null = null;
+  isFullscreen = false;
   imageFile: File | null = null;
   imageGuid: string | null = null;
   isUploading = false;
@@ -71,10 +74,17 @@ export class PdfTemplateEditorComponent implements OnInit {
         const field = this.fields.find((f) => f.id === this.selectedFieldId);
         if (field) {
           field.fieldName = name;
+          this.saveToLocalStorage();
           this.cdr.markForCheck();
         }
       }
     });
+
+    this.fieldForm.get('templateName')?.valueChanges.subscribe(() => {
+      this.saveToLocalStorage();
+    });
+
+    this.loadFromLocalStorage();
   }
 
   onImageUpload(event: Event): void {
@@ -102,15 +112,14 @@ export class PdfTemplateEditorComponent implements OnInit {
       this.fileSystemService.uploadFile(this.imageFile, 1).subscribe({
         next: (res: any) => {
           // Assuming the backend returns the file metadata with a GUID 'id'
-          // Or however the backend structure is for returning the unique ID
-          this.imageGuid = res.id;
+          this.imageGuid = res.guid;
           this.isUploading = false;
+          this.saveToLocalStorage();
           this.cdr.markForCheck();
         },
         error: (err) => {
           console.error('Error uploading template image:', err);
           this.isUploading = false;
-          alert("Erreur lors du chargement de l'image sur le serveur.");
           this.cdr.markForCheck();
         },
       });
@@ -156,7 +165,7 @@ export class PdfTemplateEditorComponent implements OnInit {
         widthPercent: 0,
         heightPercent: 0,
       };
-      this.fields.push(newField);
+      this.currentField = newField; // Assign to currentField for drawing
       this.selectedFieldId = id;
       this.startX = x;
       this.startY = y;
@@ -172,10 +181,22 @@ export class PdfTemplateEditorComponent implements OnInit {
 
     const rect = this.imageContainer.nativeElement.getBoundingClientRect();
     // Adjust coordinates for zoom level
-    const x = Math.max(0, Math.min((event.clientX - rect.left) / this.zoomLevel, rect.width / this.zoomLevel));
-    const y = Math.max(0, Math.min((event.clientY - rect.top) / this.zoomLevel, rect.height / this.zoomLevel));
+    const x = Math.max(
+      0,
+      Math.min((event.clientX - rect.left) / this.zoomLevel, rect.width / this.zoomLevel)
+    );
+    const y = Math.max(
+      0,
+      Math.min((event.clientY - rect.top) / this.zoomLevel, rect.height / this.zoomLevel)
+    );
 
-    const field = this.fields.find((f) => f.id === this.selectedFieldId);
+    let field: FieldPosition | null = null;
+    if (this.mode === 'DRAWING') {
+      field = this.currentField;
+    } else {
+      field = this.fields.find((f) => f.id === this.selectedFieldId) || null;
+    }
+
     if (!field) return;
 
     // Use base dimensions (not zoomed) for all calculations
@@ -240,14 +261,18 @@ export class PdfTemplateEditorComponent implements OnInit {
 
   @HostListener('window:mouseup')
   onMouseUp(): void {
-    if (this.mode === 'DRAWING') {
-      const field = this.fields.find((f) => f.id === this.selectedFieldId);
-      if (field && (field.widthPercent < 1 || field.heightPercent < 1)) {
-        this.fields = this.fields.filter((f) => f.id !== this.selectedFieldId);
-        this.selectedFieldId = null;
+    if (this.mode === 'DRAWING' && this.currentField) {
+      if (this.currentField.widthPercent > 0.5 && this.currentField.heightPercent > 0.5) {
+        this.fields.push(this.currentField);
+        this.selectField(this.currentField.id);
+        this.saveToLocalStorage();
       }
+    } else if (this.mode === 'MOVING' || this.mode === 'RESIZING') {
+      this.saveToLocalStorage();
     }
+
     this.mode = 'IDLE';
+    this.currentField = null;
     this.resizeHandle = null;
     this.cdr.markForCheck();
   }
@@ -256,7 +281,9 @@ export class PdfTemplateEditorComponent implements OnInit {
     this.fields = this.fields.filter((f) => f.id !== id);
     if (this.selectedFieldId === id) {
       this.selectedFieldId = null;
+      this.fieldForm.patchValue({ fieldName: '' });
     }
+    this.saveToLocalStorage();
     this.cdr.markForCheck();
   }
 
@@ -274,11 +301,44 @@ export class PdfTemplateEditorComponent implements OnInit {
 
     const payload: TemplatePayload = {
       templateName: this.fieldForm.value.templateName,
+      imageTemplate: this.imageGuid!,
       fields: this.fields,
-      imageTemplate: this.imageGuid,
     };
 
     this.templateSaved.emit(payload);
+    this.clearLocalStorage();
+  }
+
+  private saveToLocalStorage(): void {
+    const draft = {
+      templateName: this.fieldForm.value.templateName,
+      imageUrl: this.imageUrl,
+      imageGuid: this.imageGuid,
+      fields: this.fields,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+  }
+
+  private loadFromLocalStorage(): void {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const draft = JSON.parse(saved);
+        this.imageUrl = draft.imageUrl;
+        this.imageGuid = draft.imageGuid;
+        this.fields = draft.fields || [];
+        if (draft.templateName) {
+          this.fieldForm.patchValue({ templateName: draft.templateName }, { emitEvent: false });
+        }
+        this.cdr.markForCheck();
+      } catch (e) {
+        console.error('Failed to load draft from local storage', e);
+      }
+    }
+  }
+
+  private clearLocalStorage(): void {
+    localStorage.removeItem(STORAGE_KEY);
   }
 
   private getFieldAt(x: number, y: number): FieldPosition | null {
@@ -366,7 +426,7 @@ export class PdfTemplateEditorComponent implements OnInit {
 
     const canvas = this.canvasArea.nativeElement;
     const imageElement = this.imageContainer.nativeElement;
-    
+
     // Get current scroll position BEFORE any changes
     const scrollLeft = canvas.scrollLeft;
     const scrollTop = canvas.scrollTop;
@@ -389,15 +449,15 @@ export class PdfTemplateEditorComponent implements OnInit {
     // Get bounding rects BEFORE zoom change
     const imageRect = imageElement.getBoundingClientRect();
     const canvasRect = canvas.getBoundingClientRect();
-    
+
     // Calculate the image's position within the canvas scroll container
     const imageOffsetX = imageRect.left - canvasRect.left;
     const imageOffsetY = imageRect.top - canvasRect.top;
-    
+
     // Mouse position relative to the image container (in viewport coordinates)
     const relativeX = mouseX - imageOffsetX;
     const relativeY = mouseY - imageOffsetY;
-    
+
     // Calculate the point on the image in base (unzoomed) coordinates
     // The scroll position tells us how far we've scrolled in the zoomed space
     // We need to convert this to base coordinates
@@ -424,11 +484,11 @@ export class PdfTemplateEditorComponent implements OnInit {
       const newCanvasRect = canvas.getBoundingClientRect();
       const newImageOffsetX = newImageRect.left - newCanvasRect.left;
       const newImageOffsetY = newImageRect.top - newCanvasRect.top;
-      
+
       // Recalculate relative position with new offsets (after zoom)
       const newRelativeX = mouseX - newImageOffsetX;
       const newRelativeY = mouseY - newImageOffsetY;
-      
+
       // Calculate final scroll position
       // The base point (in unzoomed coordinates) will be at baseX * newZoom in zoomed space
       // We want this point to be at the mouse position
@@ -436,7 +496,7 @@ export class PdfTemplateEditorComponent implements OnInit {
       // So: newScroll = baseX * newZoom - newRelativeX
       const finalScrollLeft = baseX * newZoom - newRelativeX;
       const finalScrollTop = baseY * newZoom - newRelativeY;
-      
+
       // Apply scroll position (round to avoid sub-pixel issues)
       canvas.scrollLeft = Math.max(0, Math.round(finalScrollLeft));
       canvas.scrollTop = Math.max(0, Math.round(finalScrollTop));
@@ -450,12 +510,26 @@ export class PdfTemplateEditorComponent implements OnInit {
   // Handle mouse wheel zoom on canvas
   onWheel(event: WheelEvent): void {
     if (!this.imageUrl) return;
-    
+
     // Only zoom if Ctrl key is pressed (or Cmd on Mac)
-    if (event.ctrlKey || event.metaKey) {
+    if (event.ctrlKey) {
       event.preventDefault();
-      const delta = event.deltaY > 0 ? -this.zoomStep : this.zoomStep;
-      this.setZoom(this.zoomLevel + delta, event);
+      const delta = event.deltaY > 0 ? -0.1 : 0.1;
+      const newZoom = Math.min(Math.max(this.minZoom, this.zoomLevel + delta), this.maxZoom);
+      this.setZoomWithMousePosition(newZoom, event as unknown as MouseEvent);
+    }
+  }
+
+  toggleFullscreen(): void {
+    this.isFullscreen = !this.isFullscreen;
+    this.cdr.markForCheck();
+  }
+
+  @HostListener('document:keydown.escape')
+  exitFullscreen(): void {
+    if (this.isFullscreen) {
+      this.isFullscreen = false;
+      this.cdr.markForCheck();
     }
   }
 }
